@@ -1,0 +1,11 @@
+name: build
+description: Check if the package is successfully built.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build Package
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build
+      shell: bash

@@ -1,0 +1,25 @@
+name: unittest
+
+on:
+  push:
+    branches-ignore: [ "develop" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.10
+
+    - name: get dependencies
+      uses: ./.github/actions/get_dependencies
+
+    - name: unittest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      uses: ./.github/actions/unittest
