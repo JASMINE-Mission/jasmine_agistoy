@@ -1,6 +1,6 @@
 /build
 /dist
-/jasmine_agistoy.egg-info
+/*.egg-info
 /.vscode
 .hypothesis
 __pycache__
