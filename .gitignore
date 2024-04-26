@@ -9,3 +9,4 @@ __pycache__
 *.pkl
 *.fits
 *.fits.gz
+*.pdf
