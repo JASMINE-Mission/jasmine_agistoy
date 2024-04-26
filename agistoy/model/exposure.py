@@ -13,7 +13,6 @@ __all__ = (
 zeta = jax.jit(position_focal_plane)
 
 _iterate_src = jax.vmap(zeta, (0, None, None, None), 0)
-_iterate_exp = jax.vmap(zeta, (None, 0, None, 0), 0)
 _iterate_full = jax.vmap(_iterate_src, (None, 0, None, 0), 0)
 
 
