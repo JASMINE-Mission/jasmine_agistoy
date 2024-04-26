@@ -1,0 +1,37 @@
+[build-system]
+requires = ['setuptools>=61.0.0', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'jasmine_agistoy'
+description = 'An experimental code to optimize astrometric parameters'
+readme = 'README.md'
+requires-python = '>3.9'
+license = {file = 'LICENSE'}
+authors = [
+  {name = 'Ryou Ohsawa', email = 'ryou.ohsawa@nao.ac.jp'},
+]
+classifiers = [
+  'Development Status :: 3 - Alpha',
+  'Intended Audience :: Science/Research',
+  'License :: OSI Approved :: MIT License',
+  'Operating System :: POSIX :: Linux',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Topic :: Scientific/Engineering :: Astronomy',
+]
+dynamic = ['version', 'dependencies']
+
+[project.urls]
+homepage = 'https://github.com/JASMINE-Mission/jasmine_agistoy'
+repository = 'https://github.com/JASMINE-Mission/jasmine_agistoy'
+
+[tool.setuptools.packages.find]
+include = ['agistoy*']
+exclude = ['tests*']
+
+[tool.setuptools.dynamic]
+version = {attr = 'agistoy.__versoin__'}
+dependencies = {file = ['requirements.txt']}

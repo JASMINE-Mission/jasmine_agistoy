@@ -1,0 +1,11 @@
+/build
+/dist
+/jasmine_agistoy.egg-info
+/.vscode
+.hypothesis
+__pycache__
+.ipynb_checkpoints
+.pytest_cache
+*.pkl
+*.fits
+*.fits.gz
