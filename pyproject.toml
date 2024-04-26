@@ -33,5 +33,5 @@ include = ['agistoy*']
 exclude = ['tests*']
 
 [tool.setuptools.dynamic]
-version = {attr = 'agistoy.__versoin__'}
+version = {attr = 'jasmine_agistoy.__versoin__'}
 dependencies = {file = ['requirements.txt']}
