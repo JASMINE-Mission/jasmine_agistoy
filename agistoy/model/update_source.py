@@ -20,11 +20,11 @@ def update_source_inner(obs, ref, _src, exp, cal):
 
     _ = []
     for cn in range(cal.shape[0]):
-      cid = cal[cn, 0]
-      tx = exp[exp[:, 2] == cid, 0]
-      ex = exp[exp[:, 2] == cid, 3:]
-      cx = cal[cn, 1:]
-      _.append(dzds(_src[1:], ex, cx, tx))
+        cid = cal[cn, 0]
+        tx = exp[exp[:, 2] == cid, 0]
+        ex = exp[exp[:, 2] == cid, 3:]
+        cx = cal[cn, 1:]
+        _.append(dzds(_src[1:], ex, cx, tx))
     Ds = jnp.vstack(_)
 
     N = Ds.T @ ((1 / s**2).reshape(-1, 1) * Ds) + jnp.diag(1 / S**2)
