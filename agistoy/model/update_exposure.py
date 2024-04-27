@@ -3,7 +3,7 @@
 
 import jax
 import jax.numpy as jnp
-from .estimate import estimate_for_exposure
+from .estimate import estimate
 from .gradient import dzde
 
 __all__ = (
@@ -11,12 +11,13 @@ __all__ = (
 )
 
 
-def update_exposure_inner(obs, ref, src, exp, cal):
-    c = estimate_for_exposure(src, exp, cal)[:, 2]
-    o = obs[obs[:, 1] == exp[0]][:, 2]
-    s = obs[obs[:, 1] == exp[0]][:, 3] + ref[:, 3]
+def update_exposure_inner(obs, ref, src, _exp, cal):
+    c = estimate(src, _exp, cal)[:, 2]
+    o = obs[obs[:, 1] == _exp[1]][:, 2]
+    s = obs[obs[:, 1] == _exp[1]][:, 3] + ref[:, 4]
+    cx = cal[cal[:, 1] == _exp[2], 1:].ravel()
 
-    De = dzde(src[:, 1:], exp[2:], cal, exp[1])
+    De = dzde(src[:, 1:], _exp[3:], cx, _exp[0])
 
     N = De.T @ jnp.diag(1.0 / s**2) @ De
     b = De.T @ ((o - c) / s**2)
@@ -24,7 +25,7 @@ def update_exposure_inner(obs, ref, src, exp, cal):
     cfac = jax.scipy.linalg.cho_factor(N)
 
     delta = jax.scipy.linalg.cho_solve(cfac, b)
-    return exp.at[2:].set(exp[2:] + delta)
+    return _exp.at[3:].set(_exp[3:] + delta)
 
 
 def update_exposure(obs, ref, src, exp, cal):

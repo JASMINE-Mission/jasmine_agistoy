@@ -10,7 +10,6 @@ from agistoy.model.longitude import longitude
 def epoch():
     return np.array([0.0, 3.0, 6.0])
 
-
 @fixture
 def phase():
     return 2 * np.pi * np.array([0.0, 1.0, 2.0])

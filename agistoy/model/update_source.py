@@ -3,7 +3,7 @@
 
 import jax
 import jax.numpy as jnp
-from .estimate import estimate_for_source
+from .estimate import estimate
 from .gradient import dzds
 
 __all__ = (
@@ -11,22 +11,28 @@ __all__ = (
 )
 
 
-def update_source_inner(obs, ref, src, exp, cal):
-    c = estimate_for_source(src, exp, cal)[:, 2]
-    o = obs[obs[:, 0] == src[0]][:, 2]
-    s = obs[obs[:, 0] == src[0]][:, 3]
-    S = ref[int(src[0])][3:6]
-    p = src[1:] - ref[int(src[0])][0:3]
+def update_source_inner(obs, ref, _src, exp, cal):
+    c = estimate(_src, exp, cal)[:, 2]
+    o = obs[obs[:, 0] == _src[0]][:, 2]
+    s = obs[obs[:, 0] == _src[0]][:, 3]
+    S = ref[ref[:, 0] == _src[0]][0][4:7]
+    p = _src[1:] - ref[int(_src[0])][1:4]
 
-    Ds = dzds(src[1:], exp[:, 2:], cal, exp[:, 1])
+    _ = []
+    for cn in range(cal.shape[0]):
+      cid = cal[cn, 0]
+      tx = exp[exp[:, 2] == cid, 0]
+      ex = exp[exp[:, 2] == cid, 3:]
+      cx = cal[cn, 1:]
+      _.append(dzds(_src[1:], ex, cx, tx))
+    Ds = jnp.vstack(_)
 
     N = Ds.T @ ((1 / s**2).reshape(-1, 1) * Ds) + jnp.diag(1 / S**2)
     b = Ds.T @ ((o - c) / s**2) - p / S**2
 
     cfac = jax.scipy.linalg.cho_factor(N)
     delta = jax.scipy.linalg.cho_solve(cfac, b)
-
-    return src.at[1:].set(src[1:] + delta)
+    return _src.at[1:].set(_src[1:] + delta)
 
 
 def update_source(obs, ref, src, exp, cal):

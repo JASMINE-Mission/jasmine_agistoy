@@ -2,12 +2,35 @@
 # -*- coding: utf-8 -*-
 
 import jax
+import jax.numpy as jnp
 from .estimate import estimate
 from .gradient import dzdc
 
 __all__ = (
   'update_calibration',
 )
+
+
+def update_calibration_inner(obs, ref, src, exp, _cal):
+    c = estimate(src, exp, _cal)[:, 2]
+    o = obs[:, 2]
+    s = obs[:, 3]
+    S = (1 / s**2).reshape(-1, 1)
+
+    cid = _cal[0]
+    tx = exp[exp[:, 2] == cid, 0]
+    ex = exp[exp[:, 2] == cid, 3:]
+
+    Dc = dzdc(src[:, 1:], ex, _cal[1:], tx)
+
+    N = Dc.T @ (S * Dc)
+    b = Dc.T @ ((o - c) / s**2)
+
+    cfac = jax.scipy.linalg.cho_factor(N)
+    delta = jax.scipy.linalg.cho_solve(cfac, b)
+    print(N, b, delta, cfac)
+
+    return _cal.at[1:].set(_cal[1:] + delta)
 
 
 def update_calibration(obs, ref, src, exp, cal):
@@ -23,16 +46,5 @@ def update_calibration(obs, ref, src, exp, cal):
     Returns:
       The updated calibration parameters.
     '''
-    c = estimate(src, exp, cal)[:, 2]
-    o = obs[:, 2]
-    s = obs[:, 3]
-    S = (1 / s**2).reshape(-1, 1)
-
-    Dc = dzdc(src[:, 1:], exp[:, 2:], cal, exp[:, 1])
-
-    N = Dc.T @ (S * Dc)
-    b = Dc.T @ ((o - c) / s**2)
-
-    cfac = jax.scipy.linalg.cho_factor(N)
-    delta = jax.scipy.linalg.cho_solve(cfac, b)
-    return cal + delta
+    return jnp.vstack(
+        [update_calibration_inner(obs, ref, src, exp, _) for _ in cal])

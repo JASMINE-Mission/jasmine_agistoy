@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import jax
-from .estimate import zeta
+from .exposure import zeta
 
 __all__ = (
   'dzds', 'dzde', 'dzdc',
