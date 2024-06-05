@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from agistoy.model.position_ideal_plane import position_ideal_plane
+from toybis.model.position_ideal_plane import position_ideal_plane
 
 
 @fixture

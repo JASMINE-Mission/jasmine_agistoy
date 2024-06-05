@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from agistoy.model.position_focal_plane import position_focal_plane
+from toybis.model.position_focal_plane import position_focal_plane
 
 
 @fixture

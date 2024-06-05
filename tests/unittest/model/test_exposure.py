@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from agistoy.model.exposure import zeta, exposure
+from toybis.model.exposure import zeta, exposure
 
 
 @fixture

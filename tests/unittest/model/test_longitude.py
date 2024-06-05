@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from agistoy.model.longitude import longitude
+from toybis.model.longitude import longitude
 
 
 @fixture
