@@ -28,9 +28,9 @@ def exposure(src, exp, cal):
           src[:,2]: proper motion
           src[:,3]: parallax
         exp: exposure parameters with exposure_id and observation time
-          exp[:,0]: observation epoch
-          exp[:,1]: exposure_id
-          exp[:,2]: calibration_id
+          exp[:,0]: exposure_id
+          exp[:,1]: calibration_id
+          exp[:,2]: observation epoch
           exp[:,3]: pointing direction
           exp[:,4]: optics scaling
         cal: calibration parameters
@@ -49,10 +49,10 @@ def exposure(src, exp, cal):
     exp = jnp.atleast_2d(exp)
     cal = jnp.atleast_2d(cal)
 
-    cal_id = exp[:, 2]
+    cal_id = exp[:, 1]
     zarr = []
     for n, cid in enumerate(np.unique(cal_id)):
-        t = exp[cal_id == cid, 0]
+        t = exp[cal_id == cid, 2]
         s = src[:, 1:]
         e = exp[cal_id == cid, 3:]
         c = cal[n, 1:]
