@@ -38,61 +38,53 @@ def generate_mock_source_pair(n_source, seed=42):
     return src, shat
 
 
-def generate_mock_exposure(n_exposure, seed=42):
+def generate_mock_observation(n_exposure, n_calib, seed=42):
     ''' Generate a mock exposure table '''
     rng = np.random.default_rng(seed=42)
 
     exposure_id = jnp.arange(n_exposure, dtype='int')
+    calib_id = jnp.arange(n_calib, dtype='int')
 
+    cx = rng.choice(calib_id, size=exposure_id.size)
     ep = jnp.linspace(-5, 5, exposure_id.size)
     pt = rng.uniform(-2.0, 2.0, size=exposure_id.shape)
     st = rng.gamma(50.0, 0.15 / 50.0, size=exposure_id.shape)
 
-    return jnp.stack([exposure_id, ep, pt, st]).T
-
-
-def generate_mock_exposure_pair(n_exposure, seed=42):
-    ''' Generate a mock exposure table and its initial guess '''
-    rng = np.random.default_rng(seed=seed)
-    exp = generate_mock_exposure(n_exposure, seed=seed)
-
-    ehat = jnp.hstack([
-        exp[:, 0:2],
-        exp[:, 2:3] + rng.normal(0.0, 0.01, size=exp[:, 2:3].shape),
-        exp[:, 3:4] * 0 + 0.15,
-    ])
-
-    return exp, ehat
-
-
-def generate_mock_calibration(n_calibration, seed=42):
-    ''' Generate a mock calibration table '''
-    rng = np.random.default_rng(seed=42)
-
-    calib_id = jnp.arange(n_calibration, dtype='int')
+    exp = jnp.stack([exposure_id, cx, ep, pt, st]).T
 
     c0 = rng.normal(0.0, 0.1, size=calib_id.shape)
     c1 = rng.normal(0.0, 0.1, size=calib_id.shape)
     c2 = rng.normal(0.0, 0.1, size=calib_id.shape)
 
-    return jnp.stack([c0, c1, c2]).T
+    cal = jnp.stack([calib_id, c0, c1, c2]).T
+
+    return exp, cal
 
 
-def generate_mock_calibration_pair(n_calibration, seed=42):
-    ''' Generate a mock calibration table and its initial guess '''
-    rng = np.random.default_rng(seed=42)
+def generate_mock_observation_pair(n_exposure, n_calib, seed=42):
+    ''' Generate a mock exposure table and its initial guess '''
+    rng = np.random.default_rng(seed=seed)
+    exp, cal = generate_mock_observation(n_exposure, n_calib, seed=seed)
 
-    cal = generate_mock_calibration(n_calibration, seed=seed)
+    ehat = jnp.hstack([
+        exp[:, 0:3],
+        exp[:, 3:4] + rng.normal(0.0, 0.01, size=exp[:, 2:3].shape),
+        exp[:, 4:5] * 0 + 0.15,
+    ])
 
-    chat = jnp.zeros(shape=cal.shape)
+    chat = jnp.hstack([
+        cal[:, 0:1],
+        cal[:, 1:2] * 0,
+        cal[:, 2:3] * 0,
+        cal[:, 3:4] * 0,
+    ])
 
-    return cal, chat
+    return (exp, cal), (ehat, chat)
 
 
 def generate_mock_simulation(n_src, n_exp, n_cal, seed=42):
     ''' Generate a mock simulation dataset '''
     src, shat = generate_mock_source_pair(n_src, seed)
-    exp, ehat = generate_mock_exposure_pair(n_exp, seed)
-    cal, chat = generate_mock_calibration_pair(n_cal, seed)
+    obs, ohat = generate_mock_observation_pair(n_exp, n_cal, seed)
 
-    return (src, exp, cal), (shat, ehat, chat)
+    return (src, *obs), (shat, *ohat)
