@@ -88,3 +88,28 @@ def generate_mock_simulation(n_src, n_exp, n_cal, seed=42):
     obs, ohat = generate_mock_observation_pair(n_exp, n_cal, seed)
 
     return (src, *obs), (shat, *ohat)
+
+
+def generate_mock_reference(src, frac=0.1, seed=42, weight=1e8):
+    rng = np.random.default_rng(seed=seed)
+
+    ref_flag = rng.binomial(1, frac, size=src.shape[0])
+
+    x0 = src[:, 1]
+    mu = src[:, 2]
+    plx = src[:, 3]
+    sig_x0  = np.random.gamma(1000, 0.0001 / 1000, size=src.shape[0])
+    sig_mu  = np.random.gamma(1000, 0.0001 / 1000, size=src.shape[0])
+    sig_plx = np.random.gamma(1000, 0.0001 / 1000, size=src.shape[0])
+
+    ref = jnp.stack([
+        src[:, 0],
+        np.where(ref_flag, rng.normal(x0, sig_x0), np.random.normal(x0, 0.01)),
+        np.where(ref_flag, rng.normal(mu, sig_mu), 0.0),
+        np.where(ref_flag, rng.normal(plx, sig_plx), 0.0),
+        np.where(ref_flag, sig_x0, weight),
+        np.where(ref_flag, sig_mu, weight),
+        np.where(ref_flag, sig_plx, weight),
+    ]).T
+
+    return ref
