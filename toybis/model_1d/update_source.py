@@ -12,19 +12,19 @@ __all__ = (
 
 
 def update_source_inner(obs, ref, _src, exp, cal):
-    c = estimate(_src, exp, cal)[:, 2]
-    o = obs[obs[:, 0] == _src[0]][:, 2]
-    s = obs[obs[:, 0] == _src[0]][:, 3]
+    c = estimate(_src, exp, cal)[:, 3]
+    o = obs[obs[:, 0] == _src[0]][:, 3]
+    s = obs[obs[:, 0] == _src[0]][:, 4]
     S = ref[ref[:, 0] == _src[0]][0][4:7]
-    p = _src[1:] - ref[int(_src[0])][1:4]
+    p = _src[1:4] - ref[int(_src[0])][1:4]
 
     _ = []
     for cn in range(cal.shape[0]):
         cid = cal[cn, 0]
-        tx = exp[exp[:, 2] == cid, 0]
-        ex = exp[exp[:, 2] == cid, 3:]
+        tx = exp[exp[:, 1] == cid, 2]
+        ex = exp[exp[:, 1] == cid, 3:]
         cx = cal[cn, 1:]
-        _.append(dzds(_src[1:], ex, cx, tx))
+        _.append(dzds(_src[1:4], ex, cx, tx))
     Ds = jnp.vstack(_)
 
     N = Ds.T @ ((1 / s**2).reshape(-1, 1) * Ds) + jnp.diag(1 / S**2)
@@ -32,7 +32,8 @@ def update_source_inner(obs, ref, _src, exp, cal):
 
     cfac = jax.scipy.linalg.cho_factor(N)
     delta = jax.scipy.linalg.cho_solve(cfac, b)
-    return _src.at[1:].set(_src[1:] + delta)
+
+    return _src.at[1:4].set(_src[1:4] + delta)
 
 
 def update_source(obs, ref, src, exp, cal):

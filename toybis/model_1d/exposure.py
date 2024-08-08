@@ -56,8 +56,9 @@ def exposure(src, exp, cal):
         s = src[:, 1:]
         e = exp[cal_id == cid, 3:]
         c = cal[n, 1:]
-        z = _iterate_full(s, e, c, t).ravel()
+        v = _iterate_full(s, e, c, t).ravel()
         x = np.tile(src[:, 0], e.shape[0])
         y = np.repeat(exp[cal_id == cid, 0], src.shape[0])
-        zarr.append(jnp.stack([x, y, z]).T)
+        z = np.tile(cid, x.shape[0])
+        zarr.append(jnp.stack([x, y, z, v]).T)
     return jnp.concatenate(zarr)

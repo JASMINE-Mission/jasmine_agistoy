@@ -43,12 +43,13 @@ def estimate(src, exp, cal, noise=None):
     obs = exposure(src, exp, cal)
     if noise is None:
         sig = jnp.zeros(shape=obs.shape[0])
-        val = obs[:, 2]
+        val = obs[:, 3]
     else:
         if isinstance(noise, float):
             noise = np.tile(noise, src.shape[0])
         sig = np.random.gamma(100.0, np.tile(noise, exp.shape[0]) / 100.0)
-        val = np.random.normal(obs[:, 2], sig)
+        val = np.random.normal(obs[:, 3], sig)
     sid = obs[:, 0]
     eid = obs[:, 1]
-    return jnp.stack([sid, eid, val, sig]).T
+    cid = obs[:, 2]
+    return jnp.stack([sid, eid, cid, val, sig]).T
