@@ -4,10 +4,10 @@ from pytest import approx, fixture
 import jax.numpy as jnp
 import numpy as np
 
-from toybis.model.estimate import estimate
-from toybis.model.update_exposure import update_exposure
-from toybis.model.update_source import update_source
-from toybis.model.update_calibration import update_calibration
+from toybis.model_1d.estimate import estimate
+from toybis.model_1d.update_exposure import update_exposure
+from toybis.model_1d.update_source import update_source
+from toybis.model_1d.update_calibration import update_calibration
 
 
 @fixture

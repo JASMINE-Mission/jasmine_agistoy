@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from toybis.model.estimate import estimate
+from toybis.model_1d.estimate import estimate
 
 
 @fixture

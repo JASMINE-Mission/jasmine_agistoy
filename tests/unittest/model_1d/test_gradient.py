@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from toybis.model.gradient import dzds, dzde, dzdc
+from toybis.model_1d.gradient import dzds, dzde, dzdc
 
 
 @fixture
