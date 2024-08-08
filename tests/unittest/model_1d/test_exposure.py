@@ -42,6 +42,6 @@ def test_zeta(src, exp, cal):
 
 
 def test_exposure(src, exp, cal):
-    z = exposure(src, exp, cal)[:, 2]
+    z = exposure(src, exp, cal)[:, 3]
 
     assert z == approx([0.0, 1.0, 0.0, 1.0, 0.0, 1.0])

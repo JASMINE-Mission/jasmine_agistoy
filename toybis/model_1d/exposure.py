@@ -15,7 +15,7 @@ __all__ = (
 zeta = jax.jit(position_focal_plane)
 
 _iterate_src = jax.vmap(zeta, (0, None, None, None), 0)
-_iterate_full = jax.vmap(_iterate_src, (None, 0, None, 0), 0)
+_iterate_full = jax.vmap(_iterate_src, (None, 0, 0, 0), 0)
 
 
 def exposure(src, exp, cal):
@@ -49,16 +49,17 @@ def exposure(src, exp, cal):
     exp = jnp.atleast_2d(exp)
     cal = jnp.atleast_2d(cal)
 
-    cal_id = exp[:, 1]
-    zarr = []
-    for n, cid in enumerate(np.unique(cal_id)):
-        t = exp[cal_id == cid, 2]
-        s = src[:, 1:]
-        e = exp[cal_id == cid, 3:]
-        c = cal[n, 1:]
-        v = _iterate_full(s, e, c, t).ravel()
-        x = np.tile(src[:, 0], e.shape[0])
-        y = np.repeat(exp[cal_id == cid, 0], src.shape[0])
-        z = np.tile(cid, x.shape[0])
-        zarr.append(jnp.stack([x, y, z, v]).T)
-    return jnp.concatenate(zarr)
+    cal_id = exp[:, 1].astype('int')
+
+    t = exp[:, 2]
+    s = src[:, 1:]
+    e = exp[:, 3:]
+    c = jnp.take(cal[:, 1:], cal_id, axis=0)
+
+    x = np.tile(src[:, 0], e.shape[0])
+    y = np.repeat(exp[:, 0], src.shape[0])
+    z = np.tile(cal_id, src.shape[0])
+
+    v =_iterate_full(s, e, c, t).ravel()
+
+    return jnp.stack([x, y, z, v]).T
