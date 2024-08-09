@@ -3,7 +3,9 @@ name: validation
 on:
   workflow_dispatch:
   push:
-    branches-ignore: [ ]
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
 
 jobs:
   test:
