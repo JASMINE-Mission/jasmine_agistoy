@@ -60,4 +60,3 @@ def test_integrate(sim):
     print(f'# src {Ds:.3e} => {ds:.3e}')
 
     assert dz < dz0
-    assert False
