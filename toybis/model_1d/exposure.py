@@ -65,6 +65,6 @@ def exposure(src, exp, cal):
     y = np.repeat(exp[:, 0], src.shape[0])
     z = np.tile(cal_id, src.shape[0])
 
-    v =_iterate_full(s, e, c, t).ravel()
+    v = _iterate_full(s, e, c, t).ravel()
 
     return jnp.stack([x, y, z, v]).T
