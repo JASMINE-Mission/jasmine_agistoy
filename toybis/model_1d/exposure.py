@@ -56,10 +56,10 @@ def exposure(src, exp, cal):
     s = src[:, 1:]
     e = exp[:, 3:]
     try:
-      c = jnp.take(cal[:, 1:], cal_id, axis=0)
-      assert jnp.isfinite(c)
-    except:
-      c = jnp.array([cdict[int(_)] for _ in cal_id])
+        c = jnp.take(cal[:, 1:], cal_id, axis=0)
+        assert jnp.isfinite(c).all()
+    except AssertionError:
+        c = jnp.array([cdict[int(_)] for _ in cal_id])
 
     x = np.tile(src[:, 0], e.shape[0])
     y = np.repeat(exp[:, 0], src.shape[0])
