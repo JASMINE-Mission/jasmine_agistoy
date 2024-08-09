@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from toybis.model.estimate import estimate
+from toybis.model_1d.estimate import estimate
 
 
 @fixture
@@ -16,9 +16,9 @@ def src():
 @fixture
 def exp():
     return np.array([
-        [0.0, 0, 0, 0.0, 1.0],
-        [3.0, 1, 0, 0.0, 1.0],
-        [6.0, 2, 0, 0.0, 1.0]
+        [0, 0, 0.0, 0.0, 1.0],
+        [1, 0, 3.0, 0.0, 1.0],
+        [2, 0, 6.0, 0.0, 1.0]
     ])
 
 @fixture
@@ -29,30 +29,30 @@ def cal():
 
 
 def test_estimate(src, exp, cal):
-    z = estimate(src, exp, cal)[:, 2]
+    z = estimate(src, exp, cal)[:, 3]
 
     assert z == approx([0.0, 1.0, 0.0, 1.0, 0.0, 1.0])
 
 
 def test_estimate_for_source(src, exp, cal):
-    z = estimate(src[0], exp, cal)[:, 2]
+    z = estimate(src[0], exp, cal)[:, 3]
 
     assert z == approx([0.0, 0.0, 0.0])
 
 
 def test_estimate_for_exposure(src, exp, cal):
-    z = estimate(src, exp[0], cal)[:, 2]
+    z = estimate(src, exp[0], cal)[:, 3]
 
     assert z == approx([0.0, 1.0])
 
 
 def test_estimate_for_calibration(src, exp, cal):
-    z = estimate(src, exp, cal[0])[:, 2]
+    z = estimate(src, exp, cal[0])[:, 3]
 
     assert z == approx([0.0, 1.0, 0.0, 1.0, 0.0, 1.0])
 
 
 def test_estimate(src, exp, cal):
-    z = estimate(src, exp, cal, noise=0.1)[:, 2]
+    z = estimate(src, exp, cal, noise=0.1)[:, 3]
 
     assert z == approx([0.0, 1.0, 0.0, 1.0, 0.0, 1.0], abs=0.3)

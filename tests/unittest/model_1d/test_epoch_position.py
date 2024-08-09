@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from toybis.model.epoch_position import epoch_position
+from toybis.model_1d.epoch_position import epoch_position
 
 
 @fixture

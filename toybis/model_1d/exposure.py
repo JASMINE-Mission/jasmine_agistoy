@@ -15,7 +15,7 @@ __all__ = (
 zeta = jax.jit(position_focal_plane)
 
 _iterate_src = jax.vmap(zeta, (0, None, None, None), 0)
-_iterate_full = jax.vmap(_iterate_src, (None, 0, None, 0), 0)
+_iterate_full = jax.vmap(_iterate_src, (None, 0, 0, 0), 0)
 
 
 def exposure(src, exp, cal):
@@ -28,9 +28,9 @@ def exposure(src, exp, cal):
           src[:,2]: proper motion
           src[:,3]: parallax
         exp: exposure parameters with exposure_id and observation time
-          exp[:,0]: observation epoch
-          exp[:,1]: exposure_id
-          exp[:,2]: calibration_id
+          exp[:,0]: exposure_id
+          exp[:,1]: calibration_id
+          exp[:,2]: observation epoch
           exp[:,3]: pointing direction
           exp[:,4]: optics scaling
         cal: calibration parameters
@@ -49,15 +49,22 @@ def exposure(src, exp, cal):
     exp = jnp.atleast_2d(exp)
     cal = jnp.atleast_2d(cal)
 
-    cal_id = exp[:, 2]
-    zarr = []
-    for n, cid in enumerate(np.unique(cal_id)):
-        t = exp[cal_id == cid, 0]
-        s = src[:, 1:]
-        e = exp[cal_id == cid, 3:]
-        c = cal[n, 1:]
-        z = _iterate_full(s, e, c, t).ravel()
-        x = np.tile(src[:, 0], e.shape[0])
-        y = np.repeat(exp[cal_id == cid, 0], src.shape[0])
-        zarr.append(jnp.stack([x, y, z]).T)
-    return jnp.concatenate(zarr)
+    cdict = {int(_[0]): _[1:] for _ in cal}
+    cal_id = exp[:, 1].astype('int')
+
+    t = exp[:, 2]
+    s = src[:, 1:]
+    e = exp[:, 3:]
+    try:
+        c = jnp.take(cal[:, 1:], cal_id, axis=0)
+        assert jnp.isfinite(c).all()
+    except AssertionError:
+        c = jnp.array([cdict[int(_)] for _ in cal_id])
+
+    x = np.tile(src[:, 0], e.shape[0])
+    y = np.repeat(exp[:, 0], src.shape[0])
+    z = np.tile(cal_id, src.shape[0])
+
+    v = _iterate_full(s, e, c, t).ravel()
+
+    return jnp.stack([x, y, z, v]).T

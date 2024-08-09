@@ -1,5 +1,5 @@
-name: unittest
-description: Check the package integrity via unittest.
+name: validation
+description: Check the package integrity via detailed validation tests.
 
 runs:
   using: "composite"
@@ -20,7 +20,7 @@ runs:
       id: pytest
       continue-on-error: true
       run: |
-        python -m pytest ./tests/unittest --cov=. --cov-report xml
+        python -m pytest ./tests/validation --cov=. --cov-report xml
       shell: bash
 
     - name: Send Coverage Report to CodeClimate

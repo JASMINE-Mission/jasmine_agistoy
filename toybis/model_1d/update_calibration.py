@@ -12,23 +12,23 @@ __all__ = (
 
 
 def update_calibration_inner(obs, ref, src, exp, _cal):
-    c = estimate(src, exp, _cal)[:, 2]
-    o = obs[:, 2]
-    s = obs[:, 3]
-    S = (1 / s**2).reshape(-1, 1)
+    _exp = exp[exp[:, 1] == _cal[0], :]
 
-    cid = _cal[0]
-    tx = exp[exp[:, 2] == cid, 0]
-    ex = exp[exp[:, 2] == cid, 3:]
+    c = estimate(src, _exp, _cal)[:, 3]
+    o = obs[obs[:, 2] == _cal[0], 3]
+    s = obs[obs[:, 2] == _cal[0], 4]
+    S = jnp.array([0.1, 0.0001, 0.0001])
+    p = _cal[1:]
 
-    Dc = dzdc(src[:, 1:], ex, _cal[1:], tx)
+    tx = _exp[:, 2]
 
-    N = Dc.T @ (S * Dc)
-    b = Dc.T @ ((o - c) / s**2)
+    Dc = dzdc(src[:, 1:], _exp[:, 3:], _cal[1:], tx)
+
+    N = Dc.T @ ((1 / s**2).reshape(-1, 1) * Dc) + jnp.diag(1 / S**2)
+    b = Dc.T @ ((o - c) / s**2) - p / S**2
 
     cfac = jax.scipy.linalg.cho_factor(N)
     delta = jax.scipy.linalg.cho_solve(cfac, b)
-    print(N, b, delta, cfac)
 
     return _cal.at[1:].set(_cal[1:] + delta)
 

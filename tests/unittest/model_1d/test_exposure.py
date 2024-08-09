@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from toybis.model.exposure import zeta, exposure
+from toybis.model_1d.exposure import zeta, exposure
 
 
 @fixture
@@ -16,9 +16,9 @@ def src():
 @fixture
 def exp():
     return np.array([
-        [0.0, 0, 0, 0.0, 1.0],
-        [3.0, 1, 0, 0.0, 1.0],
-        [6.0, 2, 0, 0.0, 1.0]
+        [0, 0, 0.0, 0.0, 1.0],
+        [1, 0, 3.0, 0.0, 1.0],
+        [2, 0, 6.0, 0.0, 1.0]
     ])
 
 @fixture
@@ -42,6 +42,6 @@ def test_zeta(src, exp, cal):
 
 
 def test_exposure(src, exp, cal):
-    z = exposure(src, exp, cal)[:, 2]
+    z = exposure(src, exp, cal)[:, 3]
 
     assert z == approx([0.0, 1.0, 0.0, 1.0, 0.0, 1.0])
