@@ -49,12 +49,17 @@ def exposure(src, exp, cal):
     exp = jnp.atleast_2d(exp)
     cal = jnp.atleast_2d(cal)
 
+    cdict = {int(_[0]): _[1:] for _ in cal}
     cal_id = exp[:, 1].astype('int')
 
     t = exp[:, 2]
     s = src[:, 1:]
     e = exp[:, 3:]
-    c = jnp.take(cal[:, 1:], cal_id, axis=0)
+    try:
+      c = jnp.take(cal[:, 1:], cal_id, axis=0)
+      assert jnp.isfinite(c)
+    except:
+      c = jnp.array([cdict[int(_)] for _ in cal_id])
 
     x = np.tile(src[:, 0], e.shape[0])
     y = np.repeat(exp[:, 0], src.shape[0])

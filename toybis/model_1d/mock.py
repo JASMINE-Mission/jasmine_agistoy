@@ -13,9 +13,9 @@ def generate_mock_source(n_source, seed=42):
 
     source_id = jnp.arange(n_source, dtype='int')
 
-    x0 = rng.uniform(-1.0, 1.0, size=source_id.shape)
-    mu = rng.normal(0, 0.05 / 3600, size=source_id.shape)
-    plx = rng.gamma(3, 0.05 / 3600 / 3, size=source_id.shape)
+    x0 = rng.uniform(-1.0, 1.0, size=source_id.shape) * np.pi / 180.0
+    mu = rng.normal(0, 0.05, size=source_id.shape) * np.pi / 180.0 / 3600
+    plx = rng.gamma(3, 0.05 / 3, size=source_id.shape) * np.pi / 180.0 / 3600
     mag = rng.uniform(10, 15, size=source_id.shape)
     flx = 1e4 * 10 ** (-0.4 * mag)
 
@@ -29,10 +29,10 @@ def generate_mock_source_pair(n_source, seed=42):
 
     shat = jnp.hstack([
         src[:, 0:1],
-        src[:, 1:2] + rng.normal(0.0, 0.05, size=src[:, 1:2].shape),
+        src[:, 1:2] + rng.normal(0.0, 1e-4, size=src[:, 1:2].shape),
         src[:, 2:3] * 0,
         src[:, 3:4] * 0,
-        src[:, 4:5] * rng.normal(1.0, 0.05, size=src[:, 1:2].shape),
+        src[:, 4:5] * rng.normal(1.0, 0.01, size=src[:, 1:2].shape),
     ])
 
     return src, shat
@@ -47,14 +47,14 @@ def generate_mock_observation(n_exposure, n_calib, seed=42):
 
     cx = rng.choice(calib_id, size=exposure_id.size)
     ep = jnp.linspace(-5, 5, exposure_id.size)
-    pt = rng.uniform(-2.0, 2.0, size=exposure_id.shape)
-    st = rng.gamma(50.0, 0.15 / 50.0, size=exposure_id.shape)
+    pt = rng.uniform(-2.0, 2.0, size=exposure_id.shape) * np.pi / 180.0
+    st = rng.gamma(200.0, 0.15 / 200.0, size=exposure_id.shape)
 
     exp = jnp.stack([exposure_id, cx, ep, pt, st]).T
 
-    c0 = rng.normal(0.0, 0.1, size=calib_id.shape)
-    c1 = rng.normal(0.0, 0.1, size=calib_id.shape)
-    c2 = rng.normal(0.0, 0.1, size=calib_id.shape)
+    c0 = rng.normal(0.0, 0.01, size=calib_id.shape)
+    c1 = rng.normal(0.0, 0.01, size=calib_id.shape)
+    c2 = rng.normal(0.0, 0.01, size=calib_id.shape)
 
     cal = jnp.stack([calib_id, c0, c1, c2]).T
 
@@ -68,7 +68,7 @@ def generate_mock_observation_pair(n_exposure, n_calib, seed=42):
 
     ehat = jnp.hstack([
         exp[:, 0:3],
-        exp[:, 3:4] + rng.normal(0.0, 0.01, size=exp[:, 2:3].shape),
+        exp[:, 3:4] + rng.normal(0.0, 1e-4, size=exp[:, 2:3].shape),
         exp[:, 4:5] * 0 + 0.15,
     ])
 
@@ -98,9 +98,14 @@ def generate_mock_reference(src, frac=0.1, seed=42, weight=1e8):
     x0 = src[:, 1]
     mu = src[:, 2]
     plx = src[:, 3]
-    sig_x0  = np.random.gamma(1000, 0.0001 / 1000, size=src.shape[0])
-    sig_mu  = np.random.gamma(1000, 0.0001 / 1000, size=src.shape[0])
-    sig_plx = np.random.gamma(1000, 0.0001 / 1000, size=src.shape[0])
+
+    std_x0  = 100e-6 / 3600 * np.pi / 180.0
+    std_mu  = 20e-6 / 3600 * np.pi / 180.0
+    std_plx = 20e-6 / 3600 * np.pi / 180.0
+
+    sig_x0  = np.random.gamma(1000, std_x0 / 1000, size=src.shape[0])
+    sig_mu  = np.random.gamma(1000, std_mu / 1000, size=src.shape[0])
+    sig_plx = np.random.gamma(1000, std_plx / 1000, size=src.shape[0])
 
     ref = jnp.stack([
         src[:, 0],

@@ -65,4 +65,4 @@ def test_mock_reference(src):
 
 def test_with_exposure(src, obs):
     exp, cal = obs
-    assert exposure(src, exp, cal) == (10000, 3)
+    assert exposure(src, exp, cal).shape == (10000, 4)
