@@ -42,7 +42,7 @@ def test__icrs2comrs(ra, dec):
     assert lambda_c == approx(0.0)
 
 def test__comrs2fovrs(phi_c,lambda_c, rx_at,ry_at,angle_at):
-    eta,zeta = _icrs2comrs(phi_c,lambda_c, rx_at,ry_at,angle_at)
+    eta,zeta = _comrs2fovrs(phi_c,lambda_c, rx_at,ry_at,angle_at)
 
     assert eta == approx(-np.pi/4)
 
