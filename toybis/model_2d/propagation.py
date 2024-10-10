@@ -21,7 +21,7 @@ def _icrs2comrs(ra,dec):#,parallax,pmra,pmdec,satellite_efimerides,relativistic_
     return phi_c,lambda_c
 
 
-def _comrs2fovrs(phi_c,lambda_c,rx_at,ry_at,angle_at):
+def _comrs2fovrs(phi_c,lambda_c,rx_at,ry_at,angle_at):#,parallax,pmra,pmdec
     """
     This function accounts for the astrometric attitude 
     at each exposure and consists of a rotation.
@@ -31,7 +31,7 @@ def _comrs2fovrs(phi_c,lambda_c,rx_at,ry_at,angle_at):
         - lambda_c: latitude in CoMRS (in radiant)
         - rx_at: first component of the rotation axis
         - ry_at: second component of the rotation axis
-        - angle_at: rotation angle (in radiant)
+        - angle_at: TOTAL rotation angle (in radiant)
 
     Output:
         - eta: longitude in FoVRS (in radiant)
@@ -48,12 +48,13 @@ def _comrs2fovrs(phi_c,lambda_c,rx_at,ry_at,angle_at):
     rz_at = np.sqrt(1-rx_at**2-ry_at**2)
 
     #construct the rotator (FOR NOW, WE RELY ON SCIPY)
-        #since we already ensured that the modulus is one:
-    q_inv = R.from_quat([-rx_at*np.sin(angle_at),
-                         -ry_at*np.sin(angle_at),
-                         -rz_at*np.sin(angle_at),
-                         np.cos(angle_at)])
-    #u = q_inv*v*q
+        #A) since we already ensured that the modulus is one, the inverse is the conjugate
+        #B) we divide the angle by 2 because this way of rotating produces a rotation
+        #of twice the angle procured
+    q_inv = R.from_quat([-rx_at*np.sin(angle_at/2),
+                         -ry_at*np.sin(angle_at/2),
+                         -rz_at*np.sin(angle_at/2),
+                         np.cos(angle_at/2)])
 
     #construct the vector to be rotated
     v = np.array([np.cos(phi_c)*np.cos(lambda_c),
@@ -64,9 +65,14 @@ def _comrs2fovrs(phi_c,lambda_c,rx_at,ry_at,angle_at):
     u = q_inv.apply(v)
 
     #obtain new angles
-    eta = np.arctan(u[1]/u[0])
+        #NOTE: we can safely use arctan2 like this because 
+        # latitude is always between -Pi/2 and Pi/2 and
+        # thus its cosine is always positive
+        #NOTE2: this will return angles between -Pi and Pi
+    eta = np.arctan2(u[1],u[0])
     zeta = np.arcsin(u[2])
+        #TO-DO: rotate proper motions as well
 
     return eta,zeta
 
-#TO_DO: define _fovrs2fprs (gnomonic projection) and _fprs2drs (image deformation)
+#TO-DO: define _fovrs2fprs (gnomonic projection) and _fprs2drs (image deformation)
