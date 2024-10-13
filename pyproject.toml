@@ -51,5 +51,5 @@ repository = 'https://github.com/JASMINE-Mission/jasmine_toybis'
 include = ['toybis*']
 
 [tool.setuptools.dynamic]
-version = { attr = 'toybis.__version__' }
+version = { attr = 'toybis.version.version' }
 readme = { file = 'README.md', content-type = 'text/markdown' }
