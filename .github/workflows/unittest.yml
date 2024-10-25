@@ -1,9 +1,9 @@
 name: unittest
 
 on:
-  workflow_dispatch:
   push:
     branches-ignore: [ "develop" ]
+  workflow_dispatch:
 
 jobs:
   test:
