@@ -81,8 +81,8 @@ def test_iterate_source(src_all,att_all,cal,obs,_min_nobs):
     foo = lambda s,a,c,t: s+a 
     ans = iterate_source(src_all,att_all,cal,obs,None,None,None,foo,1,_min_nobs)
 
-    assert ans[0].item() == approx(0.)
-    assert ans[1].item() == approx(-2.)
+    assert ans[0][-1].item() == approx(0.)
+    assert ans[1][-1].item() == approx(-2.)
 
 
 def test_update_attitude_inner(src_all,att,cal,obs,_min_nobs):
@@ -103,16 +103,16 @@ def test_iterate_attitude(src_all,att_all,cal,obs,_min_nobs):
     foo = lambda s,a,c,t: s+a 
     ans = iterate_attitude(src_all,att_all,cal,obs,foo,1,_min_nobs)
 
-    assert ans[0].item() == approx(3.)
-    assert ans[1].item() == approx(3.)
-    assert ans[2].item() == approx(5.)
+    assert ans[0][-1].item() == approx(3.)
+    assert ans[1][-1].item() == approx(3.)
+    assert ans[2][-1].item() == approx(5.)
 
 def test_bloc_iteration(src_all,att_all,cal,obs,_min_nobs):
     foo = lambda s,a,c,t: s+a 
     ans1,ans2,ans3 = bloc_iteration(src_all,att_all,cal,obs,foo,1,1,1,None,None,None,_min_nobs,_min_nobs)
 
-    assert ans1[0].item() == approx(-1.)
-    assert ans1[1].item() == approx(-2.)
-    assert ans2[0].item() == approx(3.)
-    assert ans2[1].item() == approx(3.)
-    assert ans2[2].item() == approx(5.)
+    assert ans1[0][-1].item() == approx(-1.)
+    assert ans1[1][-1].item() == approx(-2.)
+    assert ans2[0][-1].item() == approx(3.)
+    assert ans2[1][-1].item() == approx(3.)
+    assert ans2[2][-1].item() == approx(5.)
