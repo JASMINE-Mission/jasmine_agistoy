@@ -6,6 +6,7 @@ import jax.numpy as jnp
 
 from toybis.model_2d.iterativesolver import _Jacobian_autodiff
 
+@fixture
 def foo(x):
   return jnp.asarray(
     [x[0], 5*x[2], 4*x[1]**2 - 2*x[2], x[2] * jnp.sin(x[0])])
