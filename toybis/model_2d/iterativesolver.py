@@ -357,7 +357,7 @@ def iterate_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_prio
                                           update_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_priors,model,_min_nobs)))
     return src_guess
 
-def bloc_iteration(src,att,cal,obs,model,src_niter,att_niter,niter,priors=None,sig_obs=None,sig_priors=None,_min_nobs=10,_min_nstars=100):
+def bloc_iteration(src:"array",att:"array",cal:"array",obs:"array",model:"function",src_niter:int,att_niter:int,niter:int,priors=None,sig_obs=None,sig_priors=None,_min_nobs:int=10,_min_nstars:int=100) -> "(array,array,array)":
     """
     Run the bloc iterative solver
 

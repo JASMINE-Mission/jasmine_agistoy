@@ -54,7 +54,7 @@ def generate_mock_obs_simple(src, att,cal,model, noise=0.00):
     return jnp.column_stack([ids_, obs])
 
 
-def generate_mock_obs(src, att,cal,model, FoV_size, noise=0.00):
+def generate_mock_obs(src:"array", att:"array",cal:"array",model:"function", FoV_size:"array", noise: float =0.00) -> "array":
     ''' Generate observations based on the given
      model from the parameters
     

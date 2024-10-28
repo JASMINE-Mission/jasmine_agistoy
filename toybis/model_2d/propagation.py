@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
-def _icrs2comrs(ra,dec):#,parallax,pmra,pmdec,satellite_efimerides,relativistic_factors):
+def _icrs2comrs(ra:float,dec:float) -> "(float,float)":
     """
     This function has to account for two things:
     1) proper motion and parallactic effects due to 
@@ -15,6 +15,7 @@ def _icrs2comrs(ra,dec):#,parallax,pmra,pmdec,satellite_efimerides,relativistic_
         and general relativity, respectively
     """
     #TO-DO: for now, this function is left empty
+        #add parallax,pmra,pmdec,satellite_efimerides,relativistic_factors):
 
     phi_c = ra
     lambda_c = dec
@@ -22,7 +23,7 @@ def _icrs2comrs(ra,dec):#,parallax,pmra,pmdec,satellite_efimerides,relativistic_
     return phi_c,lambda_c
 
 
-def _comrs2fovrs_fromquat(phi_c,lambda_c,rx_at,ry_at,angle_at):#,parallax,pmra,pmdec
+def _comrs2fovrs_fromquat(phi_c:float,lambda_c:float,rx_at:float,ry_at:float,angle_at:float) -> "(jnp.ndarray,jnp.ndarray)":
     """
     This function accounts for the astrometric attitude 
     at each exposure and consists of a rotation.
@@ -76,7 +77,7 @@ def _comrs2fovrs_fromquat(phi_c,lambda_c,rx_at,ry_at,angle_at):#,parallax,pmra,p
     return eta,zeta
 
 
-def _comrs2fovrs(phi_c,lambda_c,pt_ra,pt_dec,pt_rot):
+def _comrs2fovrs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:float) -> "(jnp.ndarray,jnp.ndarray)":
     """
     This function accounts for the astrometric attitude 
     at each exposure and consists of a rotation.
@@ -131,7 +132,7 @@ def _comrs2fovrs(phi_c,lambda_c,pt_ra,pt_dec,pt_rot):
 
     return eta,zeta
 
-def _fovrs2fprs(eta,zeta,F):
+def _fovrs2fprs(eta:float,zeta:float,F:float) -> "(jnp.ndarray,jnp.ndarray)":
     """
     This function performs the gnomonic projection of the
     FoV spherical coordinates (eta,zeta) and accounts for
@@ -161,7 +162,7 @@ def _fovrs2fprs(eta,zeta,F):
     return x_f,y_f
 
 
-def _comrs2fprs(phi_c,lambda_c,pt_ra,pt_dec,pt_rot,F):
+def _comrs2fprs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:float,F:float) -> "(jnp.ndarray,jnp.ndarray)":
     """
     This function performs the gnomonic projection of the
     CoMRS spherical coordinates (phi_c,lambda_c) after
