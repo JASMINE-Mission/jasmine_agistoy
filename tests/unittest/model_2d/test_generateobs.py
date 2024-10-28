@@ -31,10 +31,9 @@ def cal():
 def noise():
     return 0
 
-def test_generate_mock_obs_simple(src,att,cal,noise):
-    foo = lambda s,a,c,t: jnp.asarray((jnp.array(s[0]+a[0]),jnp.array(s[1]+a[1])))
-    obs = generate_mock_obs_simple(src,att,cal,foo,noise)
-    expcted_values = np.array([[ 0.,  0.,  0., -2.],
+@fixture
+def expected_values():
+    return np.array([[ 0.,  0.,  0., -2.],
                             [ 0.,  0.,  1., -2.],
                             [ 0.,  1.,  0., -1.],
                             [ 0.,  1.,  1., -1.],
@@ -46,7 +45,12 @@ def test_generate_mock_obs_simple(src,att,cal,noise):
                             [ 1.,  1.,  1.,  1.],
                             [ 1.,  2.,  0.,  2.],
                             [ 1.,  2.,  1.,  2.]])
-    
-    assert all(np.array([[int(b) == int(expcted_values[i,j]) for j,b in enumerate(a)] for i,a in enumerate(obs[0])]).flatten())
+
+def test_generate_mock_obs_simple(src,att,cal,noise,expected_values):
+    foo = lambda s,a,c,t: jnp.asarray((jnp.array(s[0]+a[0]),jnp.array(s[1]+a[1])))
+    obs = generate_mock_obs_simple(src,att,cal,foo,noise)
+
+    assert obs.shape == expected_values.shape
+    assert all(np.array([[int(b) == int(expected_values[i,j]) for j,b in enumerate(a)] for i,a in enumerate(obs)]).flatten())
 
 
