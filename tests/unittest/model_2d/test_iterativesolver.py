@@ -4,7 +4,7 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.model_2d.iterativesolver import _Jacobian_autodiff
+from toybis.model_2d.iterativesolver import _Jacobian_autodiff,update_source_inner,update_source,update_attitude_inner,update_attitude,bloc_iteration,iterate_attitude,iterate_source
 
 @fixture
 def argnum():
@@ -18,7 +18,38 @@ def axis():
 def input():
     return jnp.stack((jnp.array([1., 2., 3.]),jnp.array([1., 2., 3.])))
 
+@fixture
+def src():
+    return np.array([0, -1.])
 
+@fixture
+def src_all():
+    return np.array([[0, -1.],
+                     [0, -2.]])
+
+@fixture
+def att():
+    return np.array([0,0.1,2])
+
+@fixture
+def att_all():
+    return np.array([[0,0.1,2],
+                      [1,0.2,2],
+                      [2,0.3,4]])
+
+@fixture
+def cal():
+    return None
+
+@fixture
+def obs():
+    return np.array([[0,0,2],
+                         [0,1,2],
+                         [0,2,4]])
+
+@fixture
+def _min_nobs():
+    return 1     
 
 def test_Jacobian_autodiff(argnum,axis,input):
     def foo(x):
@@ -33,3 +64,55 @@ def test_Jacobian_autodiff(argnum,axis,input):
     assert all(np.array([[int(b) == int(true_ans[i,j]) for j,b in enumerate(a)] for i,a in enumerate(ans[0])]).flatten())
     assert all(np.array([[int(b) == int(true_ans[i,j]) for j,b in enumerate(a)] for i,a in enumerate(ans[1])]).flatten())
 
+def test_update_source_inner(src,att_all,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans = update_source_inner(src,att_all,cal,obs,None,None,None,foo,_min_nobs)
+
+    assert ans.item() == approx(0.)
+
+def test_update_source(src_all,att_all,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans = update_source(src_all,att_all,cal,obs,None,None,None,foo,_min_nobs)
+
+    assert ans[0].item() == approx(0.)
+    assert ans[1].item() == approx(-2.)
+
+def test_iterate_source(src_all,att_all,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans = iterate_source(src_all,att_all,cal,obs,None,None,None,foo,1,_min_nobs)
+
+    assert ans[0].item() == approx(0.)
+    assert ans[1].item() == approx(-2.)
+
+
+def test_update_attitude_inner(src_all,att,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans = update_attitude_inner(src_all,att,cal,obs,foo,_min_nobs)
+
+    assert ans.item() == approx(3.)
+
+def test_update_attitude(src_all,att_all,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans = update_attitude(src_all,att_all,cal,obs,foo,_min_nobs)
+
+    assert ans[0].item() == approx(3.)
+    assert ans[1].item() == approx(3.)
+    assert ans[2].item() == approx(5.)
+
+def test_iterate_attitude(src_all,att_all,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans = iterate_attitude(src_all,att_all,cal,obs,foo,1,_min_nobs)
+
+    assert ans[0].item() == approx(3.)
+    assert ans[1].item() == approx(3.)
+    assert ans[2].item() == approx(5.)
+
+def test_bloc_iteration(src_all,att_all,cal,obs,_min_nobs):
+    foo = lambda s,a,c,t: s+a 
+    ans1,ans2,ans3 = bloc_iteration(src_all,att_all,cal,obs,foo,1,1,1,None,None,None,_min_nobs,_min_nobs)
+
+    assert ans1[0].item() == approx(-1.)
+    assert ans1[1].item() == approx(-2.)
+    assert ans2[0].item() == approx(3.)
+    assert ans2[1].item() == approx(3.)
+    assert ans2[2].item() == approx(5.)

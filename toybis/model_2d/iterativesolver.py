@@ -128,43 +128,45 @@ def update_source_inner(src, att, cal,obs,sig_obs,priors,sig_prior,model,_min_no
     return src[1:] + delta
 
 
-def update_source(src, att, cal,obs,sig_obs,priors,sig_prior,model):
+def update_source(src, att, cal,obs,sig_obs,priors,sig_prior,model,_min_nobs=10):
   ''' Updates of the source parameters
 
-  Input:
-      src: source parameters (N x (1+num_srcparams))
+    Input:
+        src: source parameters (N x (1+num_srcparams))
         - First column: source_id
         - Second to last columns: source parameters
-      att: attitude parameters (M x (2+num_attparams))
+        att: attitude parameters (M x (2+num_attparams))
         - First column: exposure_id
         - Second column: time of exposure
         - Third to last columns: attitude parameters
-      cal: calibration parameters (P x (1+num_calparams))
+        cal: calibration parameters (P x (1+num_calparams))
         - First column: calibration_unit_id
         - Second to last columns: calibration parameters
-      obs: array of observations ((2*num_obs)x5)
+        obs: array of observations ((2*num_obs)x5)
         - First column: associated source_id
         - Second column: associated exposure_id
         - Third column: associated calibration_unit_id
         - Forth column: axis (either 0 or 1)
         - Fifth (last) column: value of the observation
-      sig_obs: observational uncertainties ((2*num_obs)x1)
-      priors: prior on the source parameters (N x (1+num_srcparams))
-      sig_prior: uncertainty on the prior on the source parameters 
+        sig_obs: observational uncertainties ((2*num_obs)x1)
+        priors: prior on the source parameters (N x (1+num_srcparams))
+        sig_prior: uncertainty on the prior on the source parameters 
                     (N x (1+num_srcparams))
-      model: forward modeling function that predicts the observations
+        model: forward modeling function that predicts the observations
         from all the model parameters.
             - inputs: source, attitude, calibration and time
+        _min_nobs: minimum number of observations to attempt a solution.
+            Below this number, the passed values for the guess are returned. 
 
-    where N is the number of sources that we want to solve for,
-    M is the total number of exposures taken (each one at time T), 
-    and P is the number of calibration units used.
+        where N is the number of sources that we want to solve for,
+        M is the total number of exposures taken (each one at time T), 
+        and P is the number of calibration units used.
 
-  Returns:
+    Returns:
     The updated source parameters of all sources.
   '''
   #loop through each source and find their optimal source parameters
-  return jnp.vstack([update_source_inner(src_, att, cal,obs,sig_obs,priors,sig_prior,model) for src_ in src])
+  return jnp.vstack([update_source_inner(src_, att, cal,obs,sig_obs,priors,sig_prior,model,_min_nobs) for src_ in src])
 
 
 def update_attitude_inner(src, att,cal,obs,model,_min_nstars=100):
@@ -173,30 +175,30 @@ def update_attitude_inner(src, att,cal,obs,model,_min_nstars=100):
     parameters of ONE exposure.
 
     Input:
-      src: source parameters (N x (1+num_srcparams))
+        src: source parameters (N x (1+num_srcparams))
         - First column: source_id
         - Second to last columns: source parameters
-      att: attitude parameters of the exposure of interest (2+num_attparams)
+        att: attitude parameters of the exposure of interest (2+num_attparams)
         - First column: exposure_id
         - Second column: time of exposure
         - Third to last columns: attitude parameters
-      cal: calibration parameters (P x (1+num_calparams))
+        cal: calibration parameters (P x (1+num_calparams))
         - First column: calibration_unit_id
         - Second to last columns: calibration parameters
-      obs: array of observations ((2*num_obs)x5)
+        obs: array of observations ((2*num_obs)x5)
         - First column: associated source_id
         - Second column: associated exposure_id
         - Third column: associated calibration_unit_id
         - Forth column: axis (either 0 or 1)
         - Fifth (last) column: value of the observation
-      model: forward modeling function that predicts the observations
+        model: forward modeling function that predicts the observations
         from all the model parameters.
             - inputs: source, attitude, calibration and time
-      _min_nstars: minimum number of sources in the exposure to attempt a solution.
+        _min_nstars: minimum number of sources in the exposure to attempt a solution.
             Below this number, the passed values for the guess are returned. 
-    
+
     Output:
-        updated attitude parameters of this exposure
+    updated attitude parameters of this exposure
     """
 
     #locate the observational data of the sources observed at this exposure
@@ -232,42 +234,44 @@ def update_attitude_inner(src, att,cal,obs,model,_min_nstars=100):
     delta = cho_solve(cfac, b)
     return att[2:] + delta
 
-def update_attitude(src, att,cal,obs,model):
+def update_attitude(src, att,cal,obs,model,_min_nstars=100):
   ''' Updates of the attitude parameters
 
-  Input:
-      src: source parameters (N x (1+num_srcparams))
+    Input:
+        src: source parameters (N x (1+num_srcparams))
         - First column: source_id
         - Second to last columns: source parameters
-      att: attitude parameters (M x (2+num_attparams))
+        att: attitude parameters (M x (2+num_attparams))
         - First column: exposure_id
         - Second column: time of exposure
         - Third to last columns: attitude parameters
-      cal: calibration parameters (P x (1+num_calparams))
+        cal: calibration parameters (P x (1+num_calparams))
         - First column: calibration_unit_id
         - Second to last columns: calibration parameters
-      obs: array of observations ((2*num_obs)x5)
+        obs: array of observations ((2*num_obs)x5)
         - First column: associated source_id
         - Second column: associated exposure_id
         - Third column: associated calibration_unit_id
         - Forth column: axis (either 0 or 1)
         - Fifth (last) column: value of the observation
-      model: forward modeling function that predicts the observations
+        model: forward modeling function that predicts the observations
         from all the model parameters.
             - inputs: source, attitude, calibration and time
-    
-    where N is the number of sources that we want to solve for,
-    M is the total number of exposures taken (each one at time T), 
-    and P is the number of calibration units used.
+        _min_nstars: minimum number of sources in the exposure to attempt a solution.
+            Below this number, the passed values for the guess are returned. 
 
-  Returns:
+        where N is the number of sources that we want to solve for,
+        M is the total number of exposures taken (each one at time T), 
+        and P is the number of calibration units used.
+
+    Returns:
     The updated attitude parameters at all the exposures.
   '''
   #loop through each exposure and find their optimal attitude parameters
-  return jnp.vstack([update_attitude_inner(src, att_,cal,obs,model) for att_ in att])
+  return jnp.vstack([update_attitude_inner(src, att_,cal,obs,model,_min_nstars) for att_ in att])
 
 
-def iterate_attitude(src_assumed,att_guess,cal_assumed,obs,model,n_iter=1):
+def iterate_attitude(src_assumed,att_guess,cal_assumed,obs,model,n_iter=1,_min_nstars=100):
     """
     Iterate n_iter times to reach the optimal attitude parameters given some
     source and calibration parameters, as well as the observations and a model
@@ -297,16 +301,18 @@ def iterate_attitude(src_assumed,att_guess,cal_assumed,obs,model,n_iter=1):
                 true values, the non-linearity of the problem will 
                 require a few iterations to converge. Probably somewhere
                 between 5 and 10.)
+        _min_nstars: minimum number of sources in the exposure to attempt a solution.
+            Below this number, the passed values for the guess are returned.
     
     Output:
         - Improved attitude parameters
     """
     for i in range(n_iter):
         att_guess = jnp.column_stack((att_guess[:,:2],
-                                          update_attitude(src_assumed,att_guess,cal_assumed,obs,model)))
+                                          update_attitude(src_assumed,att_guess,cal_assumed,obs,model,_min_nstars)))
     return att_guess
 
-def iterate_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_priors,model,n_iter=1):
+def iterate_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_priors,model,n_iter=1,_min_nobs=10):
     """
     Iterate n_iter times to reach the optimal source parameters given some
     attitude and calibration parameters, as well as the observations and a model
@@ -329,6 +335,10 @@ def iterate_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_prio
             - Third column: associated calibration_unit_id
             - Forth column: axis (either 0 or 1)
             - Fifth (last) column: value of the observation
+        sig_obs: observational uncertainties ((2*num_obs)x1)
+        priors: prior on the source parameters (N x (1+num_srcparams))
+        sig_prior: uncertainty on the prior on the source parameters 
+                    (N x (1+num_srcparams))
         model: forward modeling function that predicts the observations
             from all the model parameters.
             - inputs: source, attitude, calibration and time
@@ -336,21 +346,65 @@ def iterate_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_prio
                 true values, the non-linearity of the problem will 
                 require a few iterations to converge. Probably somewhere
                 between 2 and 5.)
+        _min_nobs: minimum number of observations to attempt a solution.
+            Below this number, the passed values for the guess are returned. 
     
     Output:
         - Improved source parameters
     """
     for i in range(n_iter):
         src_guess = jnp.column_stack((src_guess[:,:1],
-                                          update_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_priors,model)))
+                                          update_source(src_guess,att_assumed,cal_assumed,obs,sig_obs,priors,sig_priors,model,_min_nobs)))
     return src_guess
 
-def bloc_iteration(src,att,cal,obs,model,src_niter,att_niter,niter,priors=None,sig_obs=None,sig_priors=None):
+def bloc_iteration(src,att,cal,obs,model,src_niter,att_niter,niter,priors=None,sig_obs=None,sig_priors=None,_min_nobs=10,_min_nstars=100):
+    """
+    Run the bloc iterative solver
+
+    Input:
+        src_guess: initial guess for the  source parameters (N x (1+num_srcparams))
+            - First column: source_id
+            - Second to last columns: source parameters
+        att: assumed attitude parameters (M x (2+num_attparams))
+            - First column: exposure_id
+            - Second column: time of exposure
+            - Third to last columns: attitude parameters
+        cal: assumed calibration parameters (P x (1+num_calparams))
+            - First column: calibration_unit_id
+            - Second to last columns: calibration parameters
+        obs: array of observations ((2*num_obs)x5)
+            - First column: associated source_id
+            - Second column: associated exposure_id
+            - Third column: associated calibration_unit_id
+            - Forth column: axis (either 0 or 1)
+            - Fifth (last) column: value of the observation
+        sig_obs: observational uncertainties ((2*num_obs)x1)
+        priors: prior on the source parameters (N x (1+num_srcparams))
+        sig_prior: uncertainty on the prior on the source parameters 
+                    (N x (1+num_srcparams))
+        model: forward modeling function that predicts the observations
+            from all the model parameters.
+            - inputs: source, attitude, calibration and time
+        n_iter: number of loops (if the initial guess is "far" from the
+                true values, the non-linearity of the problem will 
+                require a few iterations to converge. Probably somewhere
+                between 2 and 5.)
+        _min_nobs: minimum number of observations to attempt a solution.
+            Below this number, the passed values for the guess are returned. 
+        _min_nstars: minimum number of sources in the exposure to attempt a solution.
+            Below this number, the passed values for the guess are returned.
+    
+    Output:
+        - Improved source parameters
+        - Improved attitude parameters
+        - Improved calibration parameters
+
+    """
     for i in range(niter):
         #update attitude
-        att = iterate_attitude(src,att,cal,obs,model,att_niter)
+        att = iterate_attitude(src,att,cal,obs,model,att_niter,_min_nstars)
        
         #update sources
-        src = iterate_source(src,att,cal,obs,sig_obs,priors,sig_priors,model,src_niter)
+        src = iterate_source(src,att,cal,obs,sig_obs,priors,sig_priors,model,src_niter,_min_nobs)
         
     return src,att,cal
