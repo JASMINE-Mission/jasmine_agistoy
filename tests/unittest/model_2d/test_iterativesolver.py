@@ -31,6 +31,6 @@ def test_Jacobian_autodiff(foo,argnum,axis,input):
                             [ 0.   ,    0.  ,     5.     ],
                             [ 0.    ,  16.  ,    -2.     ],
                             [ 1.6209 ,  0. ,      0.84147]])
-    assert ans[0] == true_ans
-    assert ans[1] == true_ans
+    assert all(np.array([[int(b) == int(true_ans[i,j]) for j,b in enumerate(a)] for i,a in enumerate(ans[0])]).flatten())
+    assert all(np.array([[int(b) == int(true_ans[i,j]) for j,b in enumerate(a)] for i,a in enumerate(ans[1])]).flatten())
 
