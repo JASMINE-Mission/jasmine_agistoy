@@ -73,23 +73,23 @@ def test_comrs2fovrs_fromquat(phi_c,lambda_c, rx_at,ry_at,angle_at):
     eta,zeta = _comrs2fovrs_fromquat(phi_c,lambda_c, rx_at,ry_at,angle_at)
 
     if rx_at == 0 and ry_at == 0:
-        assert eta == approx(phi_c-angle_at)
-        assert zeta == approx(lambda_c)
+        assert eta.item() == approx(phi_c-angle_at)
+        assert zeta.item() == approx(lambda_c)
 
 def test_comrs2fovrs(phi_c,lambda_c, pt_ra,pt_dec,pt_rot):
     eta,zeta = _comrs2fovrs(phi_c,lambda_c, pt_ra,pt_dec,pt_rot)
 
-    assert eta == 0.
-    assert zeta == 0.
+    assert eta.item() == approx(0.)
+    assert zeta.item() == approx(0.)
 
 def test_fovrs2fprs(eta,zeta,F):
     xf,yf = _fovrs2fprs(eta,zeta,F)
 
-    assert xf == 1.
-    assert yf == 0.
+    assert xf.item() == approx(1.)
+    assert yf.item() == approx(0.)
 
 def test_comrs2fprs(phi_c2,lambda_c, pt_ra,pt_dec,pt_rot,F):
     xf,yf = _comrs2fprs(phi_c2,lambda_c, pt_ra,pt_dec,pt_rot,F)
-
-    assert xf == 1.
-    assert yf == 0.
+    print(xf,yf,xf.item(),yf.item())
+    assert xf.item() == approx(1.)
+    assert yf.item() == approx(0.)
