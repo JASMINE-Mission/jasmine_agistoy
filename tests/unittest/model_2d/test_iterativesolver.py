@@ -25,7 +25,7 @@ def src():
 @fixture
 def src_all():
     return np.array([[0, -1.],
-                     [0, -2.]])
+                     [1, -2.]])
 
 @fixture
 def att():
