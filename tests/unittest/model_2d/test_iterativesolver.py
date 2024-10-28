@@ -7,11 +7,6 @@ import jax.numpy as jnp
 from toybis.model_2d.iterativesolver import _Jacobian_autodiff
 
 @fixture
-def foo(x):
-  return jnp.asarray(
-    [x[0], 5*x[2], 4*x[1]**2 - 2*x[2], x[2] * jnp.sin(x[0])])
-
-@fixture
 def argnum():
     return 0
 
@@ -25,7 +20,10 @@ def input():
 
 
 
-def test_Jacobian_autodiff(foo,argnum,axis,input):
+def test_Jacobian_autodiff(argnum,axis,input):
+    def foo(x):
+        return jnp.asarray(
+            [x[0], 5*x[2], 4*x[1]**2 - 2*x[2], x[2] * jnp.sin(x[0])])
     jac = _Jacobian_autodiff(foo,argnum,axis)
     ans = jac(input)
     true_ans = jnp.array([[ 1. ,      0.    ,   0.     ],
