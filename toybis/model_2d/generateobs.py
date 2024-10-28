@@ -9,23 +9,21 @@ def generate_mock_obs_simple(src, att,cal,model, noise=0.00):
      model from the parameters
     
     Arguments:
-      src: source parameters (N x (1+num_srcparams))
-        - First column: source_id
-        - Second to last columns: source parameters
-      att: attitude parameters (M x (2+num_attparams))
-        - First column: exposure_id
-        - Second column: time of exposure
-        - Third to last columns: attitude parameters
-      cal: calibration parameters (P x (1+num_calparams))
-        - First column: calibration_unit_id
-        - Second to last columns: calibration parameters
-      sig_obs: observational uncertainties ((2*num_obs)x1)
-      priors: prior on the source parameters (N x (1+num_srcparams))
-      sig_prior: uncertainty on the prior on the source parameters 
-                    (N x (1+num_srcparams))
-      model: forward modeling function that predicts the observations
+        src: source parameters (N x (1+num_srcparams))
+            - First column: source_id
+            - Second to last columns: source parameters
+        att: attitude parameters (M x (2+num_attparams))
+            - First column: exposure_id
+            - Second column: time of exposure
+            - Third to last columns: attitude parameters
+        cal: calibration parameters (P x (1+num_calparams))
+            - First column: calibration_unit_id
+            - Second to last columns: calibration parameters
+        model: forward modeling function that predicts the observations
         from all the model parameters.
             - inputs: source, attitude, calibration and time
+        noise: gaussian noise to convolve the observations with
+    
     
     Returns:
         - obs: array of observations ((2*num_obs)x5)
