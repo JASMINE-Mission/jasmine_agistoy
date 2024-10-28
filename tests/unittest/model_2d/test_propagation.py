@@ -3,7 +3,7 @@
 from pytest import approx, fixture
 import numpy as np
 
-from toybis.model_2d.propagation import _icrs2comrs,_comrs2fovrs_fromquat,_comrs2fovrs
+from toybis.model_2d.propagation import _icrs2comrs,_comrs2fovrs_fromquat,_comrs2fovrs, _fovrs2fprs, _comrs2fprs
 
 @fixture
 def ra():
@@ -16,6 +16,10 @@ def dec():
 @fixture
 def phi_c():
     return 0.0
+
+@fixture
+def phi_c2():
+    return np.pi/4
 
 @fixture
 def lambda_c():
@@ -45,23 +49,47 @@ def pt_dec():
 def pt_rot():
     return 0
 
+@fixture
+def eta():
+    return np.pi/4
 
-def test__icrs2comrs(ra, dec):
+@fixture
+def zeta():
+    return 0.0
+
+@fixture
+def F():
+    return 1
+
+
+def test_icrs2comrs(ra, dec):
     phi_c,lambda_c = _icrs2comrs(ra,dec)
 
     assert phi_c == approx(0.0)
 
     assert lambda_c == approx(0.0)
 
-def test__comrs2fovrs_fromquat(phi_c,lambda_c, rx_at,ry_at,angle_at):
+def test_comrs2fovrs_fromquat(phi_c,lambda_c, rx_at,ry_at,angle_at):
     eta,zeta = _comrs2fovrs_fromquat(phi_c,lambda_c, rx_at,ry_at,angle_at)
 
     if rx_at == 0 and ry_at == 0:
         assert eta == approx(phi_c-angle_at)
         assert zeta == approx(lambda_c)
 
-def test__comrs2fovrs(phi_c,lambda_c, pt_ra,pt_dec,pt_rot):
+def test_comrs2fovrs(phi_c,lambda_c, pt_ra,pt_dec,pt_rot):
     eta,zeta = _comrs2fovrs(phi_c,lambda_c, pt_ra,pt_dec,pt_rot)
 
     assert eta == 0.
     assert zeta == 0.
+
+def test_fovrs2fprs(eta,zeta,F):
+    xf,yf = _fovrs2fprs(eta,zeta,F)
+
+    assert xf == 1.
+    assert yf == 0.
+
+def test_comrs2fprs(phi_c2,lambda_c, pt_ra,pt_dec,pt_rot,F):
+    xf,yf = _comrs2fprs(phi_c2,lambda_c, pt_ra,pt_dec,pt_rot,F)
+
+    assert xf == 1.
+    assert yf == 0.
