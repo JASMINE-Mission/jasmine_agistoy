@@ -72,7 +72,7 @@ def _comrs2fovrs_fromquat(phi_c:float,lambda_c:float,rx_at:float,ry_at:float,ang
         # thus its cosine is always positive
         #NOTE2: this will return angles between -Pi and Pi
     eta = jnp.arctan2(u[1],u[0])
-    zeta = jnp.arcsin(u[2])
+    zeta = jnp.arctan2(u[2],jnp.sqrt(u[0]**2 + u[1]**2)) #equation 12 of Lindegren+12
 
     return eta,zeta
 
@@ -128,7 +128,7 @@ def _comrs2fovrs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:floa
         # thus its cosine is always positive
         #NOTE2: this will return angles between -Pi and Pi
     eta = jnp.arctan2(u1,u0)
-    zeta = jnp.arcsin(u2)
+    zeta = jnp.arctan2(u2,jnp.sqrt(u0**2 + u1**2)) #equation 12 of Lindegren+12
 
     return eta,zeta
 
