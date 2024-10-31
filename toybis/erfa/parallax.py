@@ -38,6 +38,5 @@ def parallax(p_source, plx, p_observer):
         The function fails if any source is located at the north pole.
     '''
 
-    return unitvector(
-        p_source - (plx.reshape((-1, 1)) \
-                    * ERFA_DAS2R) * p_observer.reshape((1, 3)))[0]
+    return unitvector(p_source
+        - (plx.reshape((-1, 1)) * ERFA_DAS2R) * p_observer.reshape((1, 3)))[0]
