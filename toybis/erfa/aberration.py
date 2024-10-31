@@ -46,6 +46,6 @@ def aberration(p_natural, velocity, solar_distance, lorenz_m1):
     p_proper = lorenz_m1 * p_natural \
       + w1 * velocity + w2 * (velocity + pdv * p_natural)
 
-    norm = jnp.sqrt(jnp.sum(p_proper ** 2, axis=1))
+    norm = jnp.sqrt(jnp.sum(p_proper ** 2, axis=1, keepdims=True))
 
     return p_proper / norm
