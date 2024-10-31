@@ -34,27 +34,24 @@ def unitvector(p_vector):
     return u_vector, modulus
 
 
-def spherical_to_cartesian(theta, phi):
+def spherical_to_cartesian(spherical):
     ''' Convert spherical coordinates into cartesian coordinates
 
     Arguments:
-        theta: `Array[*]`
-          longitude angle in units of radian.
-
-        phi: `Array[*]`
-          latitude angle in units of radian.
+        spherical: `Array[*, 2]`
+          spherical coordinates in units of radian.
+          coordinates are stored in the [lon, lat] order.
 
     Returns:
         p: `Array[*, 3]`
           cartesian coordinates (unit vector).
-          coordinates are stored in [x, y, z] order.
+          coordinates are stored in the [x, y, z] order.
     '''
 
-    cp = jnp.cos(phi)
     return jnp.array([
-        jnp.cos(theta) * cp,
-        jnp.sin(theta) * cp,
-        jnp.sin(phi)
+        jnp.cos(spherical[:, 0]) * jnp.cos(spherical[:, 1]),
+        jnp.sin(spherical[:, 0]) * jnp.cos(spherical[:, 1]),
+        jnp.sin(spherical[:, 1])
     ]).T
 
 
@@ -77,7 +74,7 @@ def cartesian_to_spherical(vector):
     z = vector[:, 2]
     d2 = vector[:, 1]**2 + vector[:, 0]**2
 
-    theta = jnp.where(d2 == 0, 0.0, jnp.atan2(vector[:, 1], vector[:, 0]))
-    phi = jnp.where(z == 0, 0.0, jnp.atan2(vector[:, 2], jnp.sqrt(d2)))
-
-    return theta, phi
+    return jnp.array([
+        jnp.where(d2 == 0, 0.0, jnp.atan2(vector[:, 1], vector[:, 0])),
+        jnp.where(z == 0, 0.0, jnp.atan2(vector[:, 2], jnp.sqrt(d2)))
+    ]).T

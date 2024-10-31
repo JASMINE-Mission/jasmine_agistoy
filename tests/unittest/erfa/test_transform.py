@@ -64,9 +64,7 @@ def test_unitvector():
 
 
 def test_spherical_to_cartesian(spherical, cartesian):
-    theta, phi = spherical[:, 0], spherical[:, 1]
-
-    vec = spherical_to_cartesian(theta, phi)
+    vec = spherical_to_cartesian(spherical)
 
     print(cartesian - vec)
     assert approx(cartesian - vec) == 0
@@ -74,10 +72,10 @@ def test_spherical_to_cartesian(spherical, cartesian):
 
 def test_cartesian_to_spherical(cartesian, spherical):
 
-    theta, phi = cartesian_to_spherical(cartesian)
+    sph = cartesian_to_spherical(cartesian)
 
-    delta_theta = fix_longitude(theta - spherical[:, 0])
-    delta_phi = phi - spherical[:, 1]
+    delta_theta = fix_longitude(sph[:, 0] - spherical[:, 0])
+    delta_phi = sph[:, 1] - spherical[:, 1]
 
     assert approx(delta_theta) == 0
     assert approx(delta_phi) == 0

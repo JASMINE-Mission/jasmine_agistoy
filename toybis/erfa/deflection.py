@@ -12,8 +12,8 @@ from . import constants as c
 
 
 __all__ = [
-    'solar_deflection',
     'deflection',
+    'deflection_by_sun',
 ]
 
 
