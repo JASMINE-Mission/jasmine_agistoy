@@ -7,6 +7,8 @@
 __all__ = [
   'ERFA_DJ00',
   'ERFA_DJM0',
+  'ERFA_DJM00',
+  'ERFA_SRS',
 ]
 
 
