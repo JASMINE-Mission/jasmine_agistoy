@@ -29,7 +29,7 @@ def unitvector(p_vector):
     modulus = jnp.sqrt(jnp.sum(p_vector**2, axis=1, keepdims=True))
 
     u_vector = jnp.where(
-        modulus==0, jnp.zeros_like(p_vector), p_vector / modulus)
+        modulus == 0, jnp.zeros_like(p_vector), p_vector / modulus)
 
     return u_vector, modulus
 
