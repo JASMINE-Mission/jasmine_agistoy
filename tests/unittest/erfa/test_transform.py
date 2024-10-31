@@ -5,7 +5,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from toybis.erfa.transform import \
-    cartesian_to_spherical, spherical_to_cartesian
+    unitvector, spherical_to_cartesian, cartesian_to_spherical
 
 
 @fixture
@@ -43,6 +43,24 @@ def cartesian():
 
 def fix_longitude(lon):
     return np.mod(lon, 2 * np.pi)
+
+
+def test_unitvector():
+    p_vector = jnp.array([
+        [1, 0, 0],
+        [2, 0, 0],
+        [0, 2, 0],
+        [0, 0, 2],
+        [0, 0, 0],
+    ])
+
+    u_vector, modulus = unitvector(p_vector)
+
+
+    modulus0 = np.array([1, 2, 2, 2, 0]).reshape((-1, 1))
+    assert approx(modulus - modulus0) == 0
+    assert approx(u_vector[1] - np.array([1, 0, 0])) == 0
+    assert approx(u_vector[4] - np.array([0, 0, 0])) == 0
 
 
 def test_spherical_to_cartesian(spherical, cartesian):
