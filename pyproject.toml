@@ -1,11 +1,10 @@
 [build-system]
-requires = ['setuptools>=61.0.0', 'wheel']
+requires = ['setuptools>=75.0', 'wheel>=0.44']
 build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'jasmine_toybis'
 description = 'An experimental code to optimize astrometric parameters'
-readme = 'README.md'
 requires-python = '>3.9'
 license = {file = 'LICENSE'}
 authors = [
@@ -22,7 +21,27 @@ classifiers = [
   'Programming Language :: Python :: 3.11',
   'Topic :: Scientific/Engineering :: Astronomy',
 ]
-dynamic = ['version', 'dependencies']
+
+dynamic = ['version', 'readme']
+
+dependencies = [
+  'numpy>=2.1',
+  'h5py>=3.11',
+  'scipy>=1.14',
+  'pandas>=2.2',
+  'astropy>=6.0',
+  'astroquery>=0.4',
+  'matplotlib>=3.9',
+  'jax>=0.4.33',
+  'jaxlib>=0.4.33'
+]
+
+[project.optional-dependencies]
+test = [
+  'pytest>=8.3',
+  'pytest-cov>=5.0',
+  'hypothesis>=6.54'
+]
 
 [project.urls]
 homepage = 'https://github.com/JASMINE-Mission/jasmine_toybis'
@@ -30,8 +49,7 @@ repository = 'https://github.com/JASMINE-Mission/jasmine_toybis'
 
 [tool.setuptools.packages.find]
 include = ['toybis*']
-exclude = ['tests*']
 
 [tool.setuptools.dynamic]
-version = {attr = 'toybis.__version__'}
-dependencies = {file = ['requirements.txt']}
+version = { attr = 'toybis.version.version' }
+readme = { file = 'README.md', content-type = 'text/markdown' }
