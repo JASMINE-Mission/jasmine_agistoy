@@ -28,3 +28,6 @@ ERFA_SRS = 1.97412574336e-8
 
 # arcsecond to radian conversion factor
 ERFA_DAS2R = (1.0 * u.arcsec).to_value('radian')
+
+#speed of light in m/s
+ERFA_CMPS = 299792458.0
