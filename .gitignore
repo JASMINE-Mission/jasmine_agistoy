@@ -10,3 +10,4 @@ __pycache__
 *.fits
 *.fits.gz
 *.pdf
+.DS_Store

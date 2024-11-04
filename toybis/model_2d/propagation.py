@@ -5,20 +5,90 @@ import jax.numpy as jnp
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+__all__ = [
+    '_icrs2comrs',
+    '_comrs2fovrs',
+    '_fovrs2fprs',
+    '_comrs2fprs',
+    '_comrs2fovrs_fromquat',
+]
 
-def _icrs2comrs(ra:float,dec:float) -> "(float,float)":
+#speed of light in m/s
+_ERFA_CMPS = 299792458.0 
+
+# Schwarzschild radius of the Sun (au)
+_ERFA_SRS = 1.97412574336e-8
+
+def _icrs2comrs(ra:float,dec:float,time:float,_jamsime_ephemeris:"(float,float,float,float,float,float)",
+                _Msun: float=1,_Mjupyter: float=0.0009545942339693249, _limiter = 1e-8) -> "(float,float)":
     """
-    This function has to account for two things:
-    1) proper motion and parallactic effects due to 
+    This function accounts for two things:
+    1) (TO-DO) proper motion and parallactic effects due to 
         the satellite orbit around the Earth and Sun
-    2) Aberration and light bending due to special
+    2) stellar aberration and light bending due to special
         and general relativity, respectively
+
+    Inputs:
+        - ra: true right ascension of the source in ICRS (radians)
+        - dec: true declination of the source in ICRS (radians)
+        - time: time of observation in TCB (Modified Julian Day)
+        - _jasmine_ephemeris: array containing the position and velocities
+             of the satellite's centre of Mass in the Barycentric Celestial 
+             Reference System. Positions in AU, velocities in m/s.
+        - _Msun: mass of the Sun in units of Solar masses.
+
+    Outputs:
+        - phi_c: longitudinal coordinate in the CoMRS (radians)
+        - lambda_c: latitudinal coordinate in the CoMRS (radians)
+
     """
     #TO-DO: for now, this function is left empty
-        #add parallax,pmra,pmdec,satellite_efimerides,relativistic_factors):
+        #add parallax,pmra,pmdec:
 
-    phi_c = ra
-    lambda_c = dec
+    #compute geometric direction in ICRS
+    q_geo = jnp.array([
+        jnp.cos(ra) * jnp.cos(dec),
+        jnp.sin(ra) * jnp.cos(dec),
+        jnp.sin(dec)
+    ])
+
+    #normalise satellite velocity to speed of light
+    satvel = _jamsime_ephemeris[3:]
+        #observer's velocity with respect to the Solar System barycenter in units of c
+    satvelnorm = satvel/_ERFA_CMPS
+        #reciprocal of Lorenz factor
+    beta = jnp.sqrt(jnp.sum(satvel**2,axis=0))/_ERFA_CMPS
+    bm1 = np.sqrt(1-np.linalg.norm(beta)**2)
+
+    #measure distance from Sun in AU
+    satpos = _jamsime_ephemeris[:3]
+    distance_from_sun = jnp.sqrt(jnp.sum(satpos**2,axis=0))
+
+    #apply light deflection by the Sun to obtain apparent direction
+    qdqpe = (q_geo * (q_geo + satpos)).sum(axis=0, keepdims=True)
+    w = _Msun * _ERFA_SRS / distance_from_sun / jnp.clip(qdqpe, a_min=_limiter)
+
+    eq = jnp.cross(satpos, q_geo)
+    peq = jnp.cross(q_geo, eq)
+
+    q_apa = q_geo + w * peq
+
+    norm = jnp.sqrt(jnp.sum(q_apa**2, axis=0, keepdims=True))
+
+    q_apa = q_apa / norm
+
+    #apply stellar aberration to update apparent direction
+    pdv = jnp.dot(q_apa,satvelnorm)
+    w1 = 1.0 + pdv / (1.0 + bm1)
+    w2 = _ERFA_SRS / distance_from_sun
+    q_apa = bm1 * q_apa \
+        + w1 * satvelnorm + w2 * (satvelnorm + pdv * q_apa)
+    norm = jnp.sqrt(jnp.sum(q_apa ** 2, axis=0, keepdims=True))
+    q_apa = q_apa / norm
+
+    #return to spherical angles
+    phi_c = jnp.arctan2(q_apa[1],q_apa[0])
+    lambda_c = jnp.arctan2(q_apa[2],jnp.sqrt(q_apa[0]**2 + q_apa[1]**2))
 
     return phi_c,lambda_c
 
