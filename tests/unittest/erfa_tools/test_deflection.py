@@ -4,7 +4,7 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.erfa.deflection import deflection, deflection_by_sun
+from toybis.erfa_tools.deflection import deflection, deflection_by_sun
 
 
 @fixture

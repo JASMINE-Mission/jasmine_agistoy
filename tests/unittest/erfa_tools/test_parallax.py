@@ -4,7 +4,7 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.erfa.parallax import parallax
+from toybis.erfa_tools.parallax import parallax
 
 
 @fixture

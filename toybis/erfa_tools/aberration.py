@@ -4,8 +4,6 @@
     Apply aberration to transform natural direction into proper direction.
 '''
 import jax.numpy as jnp
-import numpy as np
-import jax
 
 from . import constants as c
 
@@ -22,7 +20,7 @@ def aberration(p_natural, velocity, solar_distance, lorenz_m1):
         p_natural: `Array[*, 3]`
           natural direction to the source (unit vector).
 
-        velocity: `Array[3]`
+        velocity: `Array[*, 3]`
           observer's velocity with respect to the Solar System barycenter
           in units of c.
 
@@ -37,9 +35,8 @@ def aberration(p_natural, velocity, solar_distance, lorenz_m1):
         p_proper: `Array[*, 3]`
           proper direction to the source (unit vector).
     '''
-    velocity = velocity.reshape((1, 3))
+    pdv = (p_natural @ velocity.T).reshape((-1, 1))
 
-    pdv = p_natural @ velocity.T
     w1 = 1.0 + pdv / (1.0 + lorenz_m1)
     w2 = c.ERFA_SRS / solar_distance
 

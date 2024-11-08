@@ -6,8 +6,8 @@ import jax.numpy as jnp
 import astropy.units as u
 import astropy.constants as c
 
-from toybis.erfa.propermotion import propermotion
-from toybis.erfa.transform import spherical_to_cartesian
+from toybis.erfa_tools.propermotion import propermotion
+from toybis.erfa_tools.transform import spherical_to_cartesian
 
 
 @fixture

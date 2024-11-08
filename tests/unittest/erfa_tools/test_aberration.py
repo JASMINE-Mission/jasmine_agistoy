@@ -4,8 +4,8 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.erfa.aberration import aberration
-from toybis.erfa.constants import ERFA_SRS
+from toybis.erfa_tools.aberration import aberration
+from toybis.erfa_tools.constants import ERFA_SRS
 
 @fixture
 def p_source():
@@ -31,9 +31,42 @@ def check_unitary(array, axis=1):
     return approx(np.sum(array**2, axis=axis) - 1) == 0
 
 
+def test_aberration_1d():
+    p_source = jnp.array([1, 0, 0])
+    velocity = jnp.array([0, 1e-8, 0])
+    distance = 1.0
+    lorentz_bm1 = np.sqrt(1.0 - (velocity**2).sum())
+
+    p_ab = aberration(p_source, velocity, distance, lorentz_bm1)
+
+    print(p_ab)
+
+
+def test_aberration_2dx1d():
+    p_source = jnp.array([[1, 0, 0], [1, 0, 0]])
+    velocity = jnp.array([0, 1e-8, 0]).reshape((1, 3))
+    distance = 1.0
+    lorentz_bm1 = np.sqrt(1.0 - (velocity**2).sum())
+
+    p_ab = aberration(p_source, velocity, distance, lorentz_bm1)
+
+    print(p_ab)
+
+
+def test_aberration_1dx2d():
+    p_source = jnp.array([1, 0, 0]).reshape((1, 3))
+    velocity = jnp.array([[0, 1e-8, 0], [0, 0, 1e-8]])
+    distance = 1.0
+    lorentz_bm1 = np.sqrt(1.0 - (velocity**2).sum())
+
+    p_ab = aberration(p_source, velocity, distance, lorentz_bm1)
+
+    print(p_ab)
+
+
 def test_aberration_direction(p_source):
     ''' test berration direction '''
-    velocity = jnp.array([0, 0, 1e-8])
+    velocity = jnp.array([0, 0, 1e-8]).reshape((1, 3))
     solar_distance = 1.0
     lorenz_bm1 = np.sqrt(1.0 - (velocity ** 2).sum())
 

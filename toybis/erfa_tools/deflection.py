@@ -31,7 +31,7 @@ def deflection(mass, p_source, q_source, q_observer, distance,
         q_source: `Array[*, 3]`
           direction from the body to sources (unit vector).
 
-        q_observer: `Array[3]`
+        q_observer: `Array[*, 3]`
           direction from the body to the observer (unit vector).
 
         distance: `float`
@@ -44,8 +44,6 @@ def deflection(mass, p_source, q_source, q_observer, distance,
         p_natural: `Array[*, 3]`
           natural direction from the observer to sources (unit vector).
     '''
-    q_observer = q_observer.reshape((1, 3))
-
     qdqpe = (q_source * (q_source + q_observer)).sum(axis=1, keepdims=True)
     w = mass * c.ERFA_SRS / distance / jnp.clip(qdqpe, min=limiter)
 
