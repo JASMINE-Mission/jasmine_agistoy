@@ -4,7 +4,7 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.model_2d.generateobs import generate_mock_obs_simple, generate_mock_obs
+from toybis.model_2d.generateobs import generate_mock_obs_simple, generate_mock_obs,generate_mock_obs_simple_wephemeris,generate_mock_obs_wephemeris
 
 
 @fixture
@@ -22,6 +22,10 @@ def att():
     pt_ra = np.linspace(-1,1,len(exposure_id))
     pt_dec = np.linspace(-1,1,len(exposure_id))
     return np.stack([exposure_id, ep, pt_ra,pt_dec]).T
+
+@fixture
+def ephemeris():
+    return np.zeros((3,6))
 
 @fixture
 def fovsize():
@@ -75,6 +79,21 @@ def test_generate_mock_obs_simple(src,att,cal,noise,expected_values):
 def test_generate_mock_obs(src,att,cal,fovsize,noise,expected_values2):
     foo = lambda s,a,c,t: jnp.asarray((jnp.array(s[0]+a[0]),jnp.array(s[1]+a[1])))
     obs = generate_mock_obs(src,att,cal,foo,fovsize,noise)
+
+    assert obs.shape == expected_values2.shape
+    assert all(np.array([[int(b) == int(expected_values2[i,j]) for j,b in enumerate(a)] for i,a in enumerate(obs)]).flatten())
+
+
+def test_generate_mock_obs_simple_wephemeris(src,att,cal,ephemeris,noise,expected_values):
+    foo = lambda s,a,c,t,e: jnp.asarray((jnp.array(s[0]+a[0]),jnp.array(s[1]+a[1])))
+    obs = generate_mock_obs_simple_wephemeris(src,att,cal,ephemeris,foo,noise)
+
+    assert obs.shape == expected_values.shape
+    assert all(np.array([[int(b) == int(expected_values[i,j]) for j,b in enumerate(a)] for i,a in enumerate(obs)]).flatten())
+
+def test_generate_mock_obs_wephemeris(src,att,cal,ephemeris,fovsize,noise,expected_values2):
+    foo = lambda s,a,c,t,e: jnp.asarray((jnp.array(s[0]+a[0]),jnp.array(s[1]+a[1])))
+    obs = generate_mock_obs_wephemeris(src,att,cal,ephemeris,foo,fovsize,noise)
 
     assert obs.shape == expected_values2.shape
     assert all(np.array([[int(b) == int(expected_values2[i,j]) for j,b in enumerate(a)] for i,a in enumerate(obs)]).flatten())

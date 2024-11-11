@@ -61,11 +61,15 @@ def zeta():
 def F():
     return 1
 
+@fixture
+def ephemeris():
+    return np.array([1,0,0,0,1e-4,0])
 
-def test_icrs2comrs(ra, dec):
-    phi_c,lambda_c = _icrs2comrs(ra,dec)
 
-    assert phi_c == approx(0.0)
+def test_icrs2comrs(ra, dec,ephemeris):
+    phi_c,lambda_c = _icrs2comrs(ra,dec,None,ephemeris)
+
+    assert phi_c == approx(1e-4)
 
     assert lambda_c == approx(0.0)
 

@@ -4,6 +4,11 @@ Set of functions to move between different reference frames
 import jax.numpy as jnp
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+from erfafuncs import aberration,deflection
+#speed of light in m/s
+from erfafuncs.constants import ERFA_CMPS as _ERFA_CMPS
+# Schwarzschild radius of the Sun (au)
+from erfafuncs.constants import ERFA_SRS as _ERFA_SRS
 
 __all__ = [
     '_icrs2comrs',
@@ -13,13 +18,8 @@ __all__ = [
     '_comrs2fovrs_fromquat',
 ]
 
-#speed of light in m/s
-_ERFA_CMPS = 299792458.0 
-
-# Schwarzschild radius of the Sun (au)
-_ERFA_SRS = 1.97412574336e-8
-
-def _icrs2comrs(ra:float,dec:float,time:float,_jamsime_ephemeris:"(float,float,float,float,float,float)",
+def _icrs2comrs(ra:float,dec:float,t:float,_jasmine_ephemeris: "(float,float,float,float,float,float)",
+                _deltavx = 0, _deltavy = 0,_deltavz = 0,
                 _Msun: float=1,_Mjupyter: float=0.0009545942339693249, _limiter = 1e-8) -> "(float,float)":
     """
     This function accounts for two things:
@@ -36,16 +36,15 @@ def _icrs2comrs(ra:float,dec:float,time:float,_jamsime_ephemeris:"(float,float,f
              of the satellite's centre of Mass in the Barycentric Celestial 
              Reference System. Positions in AU, velocities in m/s.
         - _Msun: mass of the Sun in units of Solar masses.
+        - _Mjupyter: mass of Jupyter in units of Solar masses. (UNUSED FOR NOW)
+        - _limiter: safeguard to avoid divisions by 0 for small angles.
 
     Outputs:
         - phi_c: longitudinal coordinate in the CoMRS (radians)
         - lambda_c: latitudinal coordinate in the CoMRS (radians)
 
     """
-    #TO-DO: for now, this function is left empty
-        #add parallax,pmra,pmdec:
-
-    #compute geometric direction in ICRS
+    #compute geometric direction to the source in ICRS
     q_geo = jnp.array([
         jnp.cos(ra) * jnp.cos(dec),
         jnp.sin(ra) * jnp.cos(dec),
@@ -53,42 +52,31 @@ def _icrs2comrs(ra:float,dec:float,time:float,_jamsime_ephemeris:"(float,float,f
     ])
 
     #normalise satellite velocity to speed of light
-    satvel = _jamsime_ephemeris[3:]
+    satvel = _jasmine_ephemeris[3:]
+    satvel = satvel.at[0].add(_deltavx)
+    satvel = satvel.at[1].add(_deltavy)
+    satvel = satvel.at[2].add(_deltavz)
         #observer's velocity with respect to the Solar System barycenter in units of c
     satvelnorm = satvel/_ERFA_CMPS
         #reciprocal of Lorenz factor
     beta = jnp.sqrt(jnp.sum(satvel**2,axis=0))/_ERFA_CMPS
-    bm1 = np.sqrt(1-np.linalg.norm(beta)**2)
+    bm1 = jnp.sqrt(1-jnp.linalg.norm(beta)**2)
 
     #measure distance from Sun in AU
-    satpos = _jamsime_ephemeris[:3]
+    satpos = _jasmine_ephemeris[:3]
     distance_from_sun = jnp.sqrt(jnp.sum(satpos**2,axis=0))
+    satposnorm = satpos/distance_from_sun
 
     #apply light deflection by the Sun to obtain apparent direction
-    qdqpe = (q_geo * (q_geo + satpos)).sum(axis=0, keepdims=True)
-    w = _Msun * _ERFA_SRS / distance_from_sun / jnp.clip(qdqpe, a_min=_limiter)
+    q_apa = deflection(_Msun,q_geo,q_geo,satposnorm,distance_from_sun)
 
-    eq = jnp.cross(satpos, q_geo)
-    peq = jnp.cross(q_geo, eq)
-
-    q_apa = q_geo + w * peq
-
-    norm = jnp.sqrt(jnp.sum(q_apa**2, axis=0, keepdims=True))
-
-    q_apa = q_apa / norm
-
-    #apply stellar aberration to update apparent direction
-    pdv = jnp.dot(q_apa,satvelnorm)
-    w1 = 1.0 + pdv / (1.0 + bm1)
-    w2 = _ERFA_SRS / distance_from_sun
-    q_apa = bm1 * q_apa \
-        + w1 * satvelnorm + w2 * (satvelnorm + pdv * q_apa)
-    norm = jnp.sqrt(jnp.sum(q_apa ** 2, axis=0, keepdims=True))
-    q_apa = q_apa / norm
+    #apply stellar aberration to apparent direction to get proper direction
+    q_prop = aberration(q_apa, satvelnorm, distance_from_sun, bm1)
 
     #return to spherical angles
-    phi_c = jnp.arctan2(q_apa[1],q_apa[0])
-    lambda_c = jnp.arctan2(q_apa[2],jnp.sqrt(q_apa[0]**2 + q_apa[1]**2))
+        #equation 12 of Lindegren+12
+    phi_c = jnp.arctan2(q_prop[1],q_prop[0])
+    lambda_c = jnp.arctan2(q_prop[2],jnp.sqrt(q_prop[0]**2 + q_prop[1]**2))
 
     return phi_c,lambda_c
 

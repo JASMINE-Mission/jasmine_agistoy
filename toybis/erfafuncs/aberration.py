@@ -37,7 +37,6 @@ def aberration(p_natural, velocity, solar_distance, lorenz_m1):
         p_proper: `Array[*, 3]`
           proper direction to the source (unit vector).
     '''
-    velocity = velocity.reshape((1, 3))
 
     pdv = p_natural @ velocity.T
     w1 = 1.0 + pdv / (1.0 + lorenz_m1)
@@ -46,6 +45,6 @@ def aberration(p_natural, velocity, solar_distance, lorenz_m1):
     p_proper = lorenz_m1 * p_natural \
         + w1 * velocity + w2 * (velocity + pdv * p_natural)
 
-    norm = jnp.sqrt(jnp.sum(p_proper ** 2, axis=1, keepdims=True))
+    norm = jnp.sqrt(jnp.sum(p_proper ** 2, axis=0, keepdims=True))
 
     return p_proper / norm
