@@ -64,7 +64,7 @@ def F():
 
 @fixture
 def ephemeris():
-    return jnp.array([1,0,0,0,1e-4,0])
+    return jnp.array([1,0,0,0,1e-4*299792458.0,0])
 
 
 def test_icrs2comrs(ra, dec,ephemeris):
