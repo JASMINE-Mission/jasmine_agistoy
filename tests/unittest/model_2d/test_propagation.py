@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from pytest import approx, fixture
 import numpy as np
+import jax.numpy as jnp
 
 from toybis.model_2d.propagation import _icrs2comrs,_comrs2fovrs_fromquat,_comrs2fovrs, _fovrs2fprs, _comrs2fprs
 
@@ -63,7 +64,7 @@ def F():
 
 @fixture
 def ephemeris():
-    return np.array([1,0,0,0,1e-4,0])
+    return jnp.array([1,0,0,0,1e-4,0])
 
 
 def test_icrs2comrs(ra, dec,ephemeris):

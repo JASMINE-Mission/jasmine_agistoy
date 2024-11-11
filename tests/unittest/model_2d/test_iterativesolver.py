@@ -89,7 +89,7 @@ def test_update_source(src_all,att_all,ephemeris_all,cal,obs,_min_nobs):
 
 def test_iterate_source(src_all,att_all,cal,ephemeris_all,obs,_min_nobs):
     foo = lambda s,a,c,t,e: s+a 
-    ans = iterate_source(src_all,att_all,cal,obs,None,None,None,foo,1,_min_nobs)
+    ans = iterate_source(src_all,att_all,cal,ephemeris_all,obs,None,None,None,foo,1,_min_nobs)
 
     assert ans[0][-1].item() == approx(0.)
     assert ans[1][-1].item() == approx(-2.)
