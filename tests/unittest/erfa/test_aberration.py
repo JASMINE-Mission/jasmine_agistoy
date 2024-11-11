@@ -4,8 +4,8 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.erfa.aberration import aberration
-from toybis.erfa.constants import ERFA_SRS
+from toybis.erfafuncs.aberration import aberration
+from toybis.erfafuncs.constants import ERFA_SRS
 
 @fixture
 def p_source():

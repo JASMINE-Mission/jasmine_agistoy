@@ -4,11 +4,11 @@ Set of functions to move between different reference frames
 import jax.numpy as jnp
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from erfafuncs import aberration,deflection
+from toybis.erfafuncs import aberration,deflection
 #speed of light in m/s
-from erfafuncs.constants import ERFA_CMPS as _ERFA_CMPS
+from toybis.erfafuncs.constants import ERFA_CMPS as _ERFA_CMPS
 # Schwarzschild radius of the Sun (au)
-from erfafuncs.constants import ERFA_SRS as _ERFA_SRS
+from toybis.erfafuncs.constants import ERFA_SRS as _ERFA_SRS
 
 __all__ = [
     '_icrs2comrs',
