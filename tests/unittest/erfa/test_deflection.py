@@ -38,7 +38,7 @@ def test_deflection_direction(p_source, q_observer):
         p_natural = deflection(mass, p, p, q_observer, distance, 1e-8)
 
         delta = p_natural - p
-        assert check_unitary(p_natural)
+        assert check_unitary(p_natural,axis=0)
         if p[0]!=0:
             assert approx(delta[0]) == 0    # source at x-direction is not affected
         elif p[1]!=0:
