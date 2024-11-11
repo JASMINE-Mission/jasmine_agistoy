@@ -4,7 +4,7 @@ from pytest import approx, fixture
 import numpy as np
 import jax.numpy as jnp
 
-from toybis.erfa.transform import \
+from toybis.erfafuncs.transform import \
     unitvector, spherical_to_cartesian, cartesian_to_spherical
 
 
