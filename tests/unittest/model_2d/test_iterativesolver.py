@@ -51,6 +51,7 @@ def obs():
 def ephemeris():
     return np.array([1,0,0,0,0,0])
 
+@fixture
 def ephemeris_all():
     return np.array([[1,0,0,0,0,0],
                      [1,0,0,0,0,0],
