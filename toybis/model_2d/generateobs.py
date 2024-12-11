@@ -4,6 +4,11 @@ Set of functions that are used to generate mock observations from a given model
 import numpy as np
 from jax import vmap,numpy as jnp
 
+__all__ = [
+    "generate_mock_obs","generate_mock_obs_simple",
+    "generate_mock_obs_simple_wephemeris","generate_mock_obs_wephemeris"
+]
+
 def generate_mock_obs_simple(src, att,cal,model, noise=0.00):
     ''' Generate observations based on the given
      model from the parameters
@@ -155,7 +160,7 @@ def generate_mock_obs_simple_wephemeris(src, att,cal,ephemeris,model, noise=0.00
             - Forth column: axis (either 0 or 1)
             - Fifth column: value of the observation
             Ordered by source_id > exposure_id > axis
-            
+
     Note -- To-Do: add the calibration to everything
     '''
     #define the basic functions that generate predictions and map them

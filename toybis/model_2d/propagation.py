@@ -4,6 +4,7 @@ Set of functions to move between different reference frames
 import jax.numpy as jnp
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+from toybis.model_2d.utils import Legendre2D
 from toybis.erfafuncs import aberration,deflection
 #speed of light in m/s
 from toybis.erfafuncs.constants import ERFA_CMPS as _ERFA_CMPS
@@ -16,6 +17,7 @@ __all__ = [
     '_fovrs2fprs',
     '_comrs2fprs',
     '_comrs2fovrs_fromquat',
+    '_fprs2dr2'
 ]
 
 def _icrs2comrs(ra:float,dec:float,t:float,_jasmine_ephemeris: "(float,float,float,float,float,float)",
@@ -167,8 +169,8 @@ def _comrs2fovrs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:floa
     #trigonometry
     ca = jnp.cos(pt_ra)
     sa = jnp.sin(pt_ra)
-    cd = jnp.cos(-pt_dec)
-    sd = jnp.sin(-pt_dec)
+    cd = jnp.cos(pt_dec) #=cos(-pt_dec)
+    sd = jnp.sin(pt_dec) #=-sin(-pt_dec)
     cr = jnp.cos(pt_rot)
     sr = jnp.sin(pt_rot)
     cp = jnp.cos(phi_c)
@@ -176,9 +178,9 @@ def _comrs2fovrs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:floa
     cl = jnp.cos(lambda_c)
     sl = jnp.sin(lambda_c)
     #rotated vector
-    u0 = cp*cl*ca*cd + sp*cl*sa*cd - sl*sd
-    u1 = cp*cl*(ca*sd*sr-sa*cr) + sp*cl*(ca*cr+sa*sd*sr) + sl*cd*sr
-    u2 = cp*cl*(sa*sr+ca*sd*cr) + sp*cl*(sa*sd*cr-ca*sr) + sl*cd*cr
+    u0 = cp*cl*ca*cd + sp*cl*sa*cd + sl*sd
+    u1 = -cp*cl*(ca*sd*sr+sa*cr) + sp*cl*(ca*cr-sa*sd*sr) + sl*cd*sr
+    u2 = cp*cl*(sa*sr-ca*sd*cr) - sp*cl*(sa*sd*cr+ca*sr) + sl*cd*cr
 
     #obtain new angles
         #NOTE: we can safely use arctan2 like this because 
@@ -190,7 +192,7 @@ def _comrs2fovrs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:floa
 
     return eta,zeta
 
-def _fovrs2fprs(eta:float,zeta:float,F:float) -> "(jnp.ndarray,jnp.ndarray)":
+def _fovrs2fprs(eta:float,zeta:float,F:float,_projection="gnomonic") -> "(jnp.ndarray,jnp.ndarray)":
     """
     This function performs the gnomonic projection of the
     FoV spherical coordinates (eta,zeta) and accounts for
@@ -208,14 +210,22 @@ def _fovrs2fprs(eta:float,zeta:float,F:float) -> "(jnp.ndarray,jnp.ndarray)":
         - zeta: latitude in FoVRS (in radian)
         - F: Focal lenght (converts units of radians 
                 to physical units on the focal plane)
+        - _projection: type of projection to use.
+            For now, only "gnomonic" and "Ftheta" supported
 
     Output:
         - x_f: x-coordinate in the FPRS (units given by F)
         - y_f: y-coordinate in the FPRS (units given by F)
     """
 
-    x_f = F*jnp.tan(eta)
-    y_f = F*jnp.tan(zeta)/jnp.cos(eta)
+    if _projection == "gnomonic":
+        x_f = F*jnp.tan(eta)
+        y_f = F*jnp.tan(zeta)/jnp.cos(eta)
+    elif _projection == "Ftheta":
+        x_f = F*eta
+        y_f = F*zeta
+    else:
+        raise ValueError("Unrecognised projection type {}!".format(_projection))
 
     return x_f,y_f
 
@@ -269,4 +279,103 @@ def _comrs2fprs(phi_c:float,lambda_c:float,pt_ra:float,pt_dec:float,pt_rot:float
 
     return x_f,y_f
 
-#TO-DO: define _fprs2drs (image deformation: it should include a hardcoded rotation of each detector w.r.t. the FPRS)
+def _fprs2drs(eta,zeta,AB,detectorID,telescope_metaparams,detector_metaparams,_Ffactor=1,min_order=2,max_order=5,zeropoint=0):
+    """
+    This function performs the transformation from Focal Plane
+    reference system to the Detector reference system.
+    That is, from lengths in the focal plane to pixel location at a 
+    given detector.
+
+    Input:
+    Input:
+        - eta,zeta: longitude and latitude coordinates on the FoVRS
+            If F = 1, they can be treated as x_f and y_f (FPRS coords.)
+        - AB: list of Legendre coefficients
+        - detectorID: integer indicating row in detector_metaparams
+        - telescope_metaparams: dictionary containing at least the following
+            metaparameters of the mission:
+                - 'F': nominal focal length
+                - 'sX': nominal pixel size along [same units as F]
+                - 'sY': nominal pixel size across [same units as F]
+                - 'kappa0': position in pixels of the first usable column
+                - 'mu0': position in pixels of the first usable row
+                - 'kappaC': horizontal pixel position of the centre 
+                    of the detector in the DRS.
+                - 'muC': vertical pixel position of the centre 
+                    of the detector in the DRS.
+                - 'nCol': number of usable columns in one detector
+                - 'nRow': number of usable rows in one detector
+                - 'x0'&'y0': FPRS coordinates of the nominal foot point of
+                        the optical telescope axis on the focal plane
+                        [same units as F]
+        - detector_metaparams: array containing, in each row, the following values
+                - First column: detector ID
+                - Second column: FPRS x-coordinate of the centre of the detector
+                - Third column: FPRS y-coordinate of the centre of the detector
+                - Forth to Seventh columns: components of the rotation matrix
+                    that defines the orientation in FPRS coordinates
+                    of the detector as [R00 R10 R01 R11] = [[R00, R01],
+                                                            [R10, R11]]
+                    The corresponding rotation angle is theta = arctan2(R01,R00)
+                    (right handed || counter clock-wise)
+        - Ffactor: if desired, the nominal focal length can be adjusted with this multiplicative factor (this does not affect the nomalization of the Legendre polynomials, only the projection into the focal plane)
+            NOTE: if Ffactor is made equal to 1/Fnominal, the projection is cancelled and the angles eta,zeta can be considered already projected quantities. In that case, however, the deformations are computed OVER the projected coordinates (FPRS) no the true angles (FoVRS).
+        - min_order,max_order: range of orders to consider when applying
+            the Legendre polynomials. The A & B arrays has to be consistent.
+        - zeropoint = zero point to be added to the result of the Legendre polynomials
+                zeropoint = (c20 + c02) / 2 - c22 / 4 - (c40 + c04) * 3 / 8
+                prevents that when the first order terms are omitted.
+
+    Output:
+        - kappa, mu: DRS coordinates affected by distorsion (if A and/or B != 0)
+    """
+
+    #unpack general metaparameters
+        #Nominal focal length
+    Fnominal = telescope_metaparams['F']
+        #pixel size
+    sX     = telescope_metaparams['sX']
+    sY     = telescope_metaparams['sY']
+        #centre of detector in pixels
+    kappaC = telescope_metaparams['kappaC']
+    muC    = telescope_metaparams['muC']
+        #FPRS coordinates of the nominal foot point of the optical telescope axis on the focal plane
+    x0     = telescope_metaparams['x0']
+    y0     = telescope_metaparams['y0']
+        #Normalisation of eta,zeta before entering Legendre polys.
+    norm   = telescope_metaparams['normalisation']
+
+        #detector specific metaparameters
+            #NOTE: it assumes that detectorID is a number! (not iterable)
+    xC,yC,R00,R10,R01,R11  = detector_metaparams[int(detectorID),1:]
+    
+        #Legendre coefficients
+    A = AB[:int((len(AB))/2)]
+    B = AB[int((len(AB))/2):]
+    
+    #compute distortions
+    delta_eta = get_delta(eta,zeta,A,norm,zeropoint,min_order,max_order)
+    delta_zeta = get_delta(eta,zeta,B,norm,zeropoint,min_order,max_order)
+    
+    #compute kappa and mu
+    kappa = (R00*((eta+delta_eta)*Fnominal*_Ffactor - (xC-x0)) + \
+             R01*((zeta+delta_zeta)*Fnominal*_Ffactor - (yC-y0)))/sY + kappaC
+    mu    = (R10*((eta+delta_eta)*Fnominal*_Ffactor - (xC-x0)) + \
+             R11*((zeta+delta_zeta)*Fnominal*_Ffactor - (yC-y0)))/sX + muC
+
+    return kappa, mu
+
+
+def get_delta(eta,zeta,C,norm=1,zeropoint=0,min_order=0,max_order=5):
+    """
+    Given two angles, compute their displacement with
+    Legendre polynomials.
+
+    NOTE: with this convention, the displacement has to
+    be ADDED to the undistorted angles.
+    NOTE 2: to be consistent with DJ Legendre, we had to
+    flip the zeta coordinates
+    """
+    #To-Do: this normalisation should be computed at the creation of
+    #the telescope dictionary containing the mission parameters
+    return +Legendre2D(norm*eta,-norm*zeta,*C,min_order=min_order,max_order=max_order,_zeropoint=zeropoint)
